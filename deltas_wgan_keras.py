@@ -39,8 +39,7 @@ class wGAN():
 
        	# Build the generator
         self.generator = self.buildGenerator()
-
-        # The generator takes noise as input and generated imgs
+		# The generator takes noise as input and generated imgs
         z = Input(shape=(self.latent_dim,))
         img = self.generator(z)
 
