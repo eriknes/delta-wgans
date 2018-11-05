@@ -188,6 +188,6 @@ class wGAN():
 		self.generator.save('models/wgan_generator_epoch_%d.h5' % epoch)
 		#self.discriminator.save('models/wgan_discriminator_epoch_%d.h5' % epoch)
 
-if __name__ = '__main__':
+if __name__ == '__main__':
 	wgan = wGAN()
 	wgan.trainGAN(epochs = 100, batch_size = 128, sample_interval = 50)
