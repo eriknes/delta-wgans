@@ -100,7 +100,7 @@ class wGAN():
 		discriminator.add(LeakyReLU(alpha=0.2))
 		discriminator.add(Dropout(0.25))
 		discriminator.add(Flatten())
-		discriminator.add(Dense(1), activation = 'sigmoid')
+		discriminator.add(Dense(1))
 
 		discriminator.summary()
 
