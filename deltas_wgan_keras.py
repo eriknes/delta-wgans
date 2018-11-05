@@ -83,7 +83,7 @@ class wGAN():
 
 		discriminator = Sequential()
 
-		discriminator.add(Conv2D(32, kernel_size=5, strides=2, input_shape=self.img_shape, padding="same"))
+		discriminator.add(Conv2D(32, kernel_size=5, strides=2, input_shape=self.dimensions, padding="same"))
 		discriminator.add(LeakyReLU(alpha=0.2))
 		discriminator.add(Dropout(0.25))
 		discriminator.add(Conv2D(64, kernel_size=5, strides=2, padding="same"))
@@ -104,7 +104,7 @@ class wGAN():
 
 		discriminator.summary()
 
-		img = Input(shape=self.img_shape)
+		img = Input(shape=self.dimensions)
 		validity = discriminator(img)
 
 		return Model(img, validity)
