@@ -205,7 +205,7 @@ def build_dataset(X, nx, ny, n_test = 0):
 
 	# Random permutation of samples
 	p = np.random.permutation(m)
-	X = X[p,:]
+	X = X[:,p]
 	Y = Y[p]
 
 	# Reshape X and crop to 96x96 pixels
