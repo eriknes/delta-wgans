@@ -62,13 +62,15 @@ class wGAN():
 							kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 		generator.add(Activation('relu'))
 		generator.add(Reshape((256, 12, 12)))
-		generator.add(UpSampling2D())
-		generator.add(Conv2D(128, kernel_size=(6,6), padding="same", activation = "relu"))
+		generator.add(UpSampling2D(size=(2,2)))
+		generator.add(Conv2D(128, kernel_size=(6,6), padding="same"))
+		generator.add(Activation('relu'))
 		#generator.add(BatchNormalization(momentum=0.8))
-		generator.add(UpSampling2D())
-		generator.add(Conv2D(64, kernel_size=(6,6), padding="same", activation = "relu"))
+		generator.add(UpSampling2D(size=(2,2)))
+		generator.add(Conv2D(64, kernel_size=(6,6), padding="same"))
+		generator.add(Activation('relu'))
 		#generator.add(BatchNormalization(momentum=0.8))
-		generator.add(UpSampling2D())
+		generator.add(UpSampling2D(size=(2,2)))
 		#generator.add(Conv2D(32, kernel_size=(5,5), padding="same", activation = "relu"))
 		generator.add(Conv2D(1, kernel_size=(6,6), padding="same", activation = "sigmoid"))
 
@@ -140,7 +142,7 @@ class wGAN():
 				image_batch = X_train[idx]
 
 				# Sample noise as generator input
-				noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
+				noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim])
 
 				# Generate a batch of new images
 				gen_images = self.generator.predict(noise)
