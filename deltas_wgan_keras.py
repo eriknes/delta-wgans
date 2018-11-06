@@ -27,13 +27,15 @@ class wGAN():
 		self.latent_dim 	= 10
 
 		self.nCriticIter 	= 5
-		self.clip_val 		= 0.1
+		self.clip_val 		= 0.01
 		self.learning_rate  = 0.0001
 		optim 	 			= RMSprop(lr = self.learning_rate, clipvalue = self.clip_val)
 
 
 		# Build discriminator
 		self.discriminator  = self.buildDiscriminator()
+		# For the combined model we will only train the generator
+		self.discriminator.trainable = True
 		self.discriminator.compile(loss = self.wLoss, optimizer = optim, metrics=['accuracy'])
 
        	# Build the generator
@@ -42,11 +44,12 @@ class wGAN():
 		genInput 			= Input(shape=(self.latent_dim,))
 		img 				= self.generator(genInput)
 
-		# For the combined model we will only train the generator
-		self.discriminator.trainable = False
 
 		# The critic takes generated images as input and determines validity
 		discOutput 			= self.discriminator(img)
+
+		# For the combined model we will only train the generator
+		self.discriminator.trainable = False
 
 		# The combined model  (stacked generator and critic)
 		self.combined 		= Model(inputs = genInput, outputs = discOutput)
@@ -158,7 +161,7 @@ class wGAN():
 				# Clip critic weights
 				for l in self.discriminator.layers:
 					weights = l.get_weights()
-					weights = [np.clip(w, -self.clip_value, self.clip_value) for w in weights]
+					weights = [np.clip(w, -self.clip_val, self.clip_val) for w in weights]
 					l.set_weights(weights)
 
 
