@@ -33,7 +33,7 @@ class wGAN():
 
 		# Build discriminator
 		self.discriminator  = self.buildDiscriminator()
-		self.discriminator.compile(loss = self.wLoss, optimizer = optim)
+		self.discriminator.compile(loss = self.wLoss, optimizer = optim, metrics=['accuracy'])
 
        	# Build the generator
 		self.generator = self.buildGenerator()
@@ -49,7 +49,7 @@ class wGAN():
 
 		# The combined model  (stacked generator and critic)
 		self.combined = Model(z, valid)
-		self.combined.compile(loss=self.wLoss, optimizer=optim)
+		self.combined.compile(loss = self.wLoss, optimizer=optim, metrics=['accuracy'])
 
 	def wLoss(self, yReal, yPred):
 		return K.mean(yReal*yPred)
@@ -61,14 +61,14 @@ class wGAN():
 		generator.add(Dense(128 * 12 * 12, activation="relu", input_dim=self.latent_dim))
 		generator.add(Reshape((128, 12, 12)))
 		generator.add(UpSampling2D(size=(2,2)))
-		generator.add(Conv2D(128, kernel_size=5, padding="same", activation = "relu"))
+		generator.add(Conv2D(128, kernel_size=(5,5), padding="same", activation = "relu"))
 		#generator.add(BatchNormalization(momentum=0.8))
 		generator.add(UpSampling2D(size=(2,2)))
-		generator.add(Conv2D(64, kernel_size=5, padding="same", activation = "relu"))
+		generator.add(Conv2D(64, kernel_size=(5,5), padding="same", activation = "relu"))
 		#generator.add(BatchNormalization(momentum=0.8))
 		generator.add(UpSampling2D(size=(2,2)))
-		generator.add(Conv2D(32, kernel_size=5, padding="same", activation = "relu"))
-		generator.add(Conv2D(self.nchan, kernel_size=5, padding="same", activation = "sigmoid"))
+		#generator.add(Conv2D(32, kernel_size=(5,5), padding="same", activation = "relu"))
+		generator.add(Conv2D(1, kernel_size=(5,5), padding="same", activation = "sigmoid"))
 
 		generator.summary()
 
@@ -113,6 +113,7 @@ class wGAN():
 		filename                   	= "data/train/braidedData2.csv"
 		X_train                   	= load_file(filename)
 		(X_train, Y_train) 			= build_dataset(X_train, self.nrows, self.ncols)
+		X_train 					= np.expand_dims(X_train, axis=3)
 
 		#batch_count 				= X_train.shape[0] / batch_size
 		batch_count 				= 1
@@ -143,6 +144,7 @@ class wGAN():
 				gen_images = self.generator.predict(noise)
 
 				# Train the critic
+				print(noise.shape)
 				print(image_batch.shape)
 				print(gen_images.shape)
 				X = np.concatenate([image_batch, gen_images])
