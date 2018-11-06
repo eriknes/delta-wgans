@@ -1,3 +1,5 @@
+import numpy as np
+
 # Split into train and test data for GAN 
 def build_dataset(X, nx, ny, n_test = 0):
   
