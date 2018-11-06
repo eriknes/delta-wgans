@@ -151,7 +151,7 @@ class wGAN():
 				print(image_batch.shape)
 				print(gen_images.shape)
 				X = np.concatenate([image_batch, gen_images])
-				d_loss = self.discriminator.train_on_batch(X, valid)
+				d_loss = self.discriminator.train_on_batch(X, y_real)
 				#d_loss_fake = self.critic.train_on_batch(gen_imgs, fake)
 				#d_loss = 0.5 * np.add(d_loss_fake, d_loss_real)
 
