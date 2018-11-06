@@ -124,42 +124,42 @@ class wGAN():
 
 		for epoch in range(epochs+1):
 
-			for _ in xrange(batchCount):
+			#for _ in xrange(batchCount):
 
-				for _ in range(self.nCriticIter):
-
-					# ---------------------
-					#  1 Train Discriminator
-					# ---------------------
-
-					# Select a random batch of images
-					idx = np.random.randint(0, X_train.shape[0], batch_size)
-					image_batch = X_train[idx]
-
-					# Sample noise as generator input
-					noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
-
-					# Generate a batch of new images
-					gen_images = self.generator.predict(noise)
-
-					# Train the critic
-					X = np.concatenate([image_batch, gen_images])
-					d_loss = self.discriminator.train_on_batch(X, valid)
-					#d_loss_fake = self.critic.train_on_batch(gen_imgs, fake)
-					#d_loss = 0.5 * np.add(d_loss_fake, d_loss_real)
-
-					# Clip critic weights
-					for l in self.discriminator.layers:
-						weights = l.get_weights()
-						weights = [np.clip(w, -self.clip_value, self.clip_value) for w in weights]
-						l.set_weights(weights)
-
+			for _ in range(self.nCriticIter):
 
 				# ---------------------
-				#  Train Generator
+				#  1 Train Discriminator
 				# ---------------------
 
-				g_loss = self.combined.train_on_batch(noise, y_real)
+				# Select a random batch of images
+				idx = np.random.randint(0, X_train.shape[0], batch_size)
+				image_batch = X_train[idx]
+
+				# Sample noise as generator input
+				noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
+
+				# Generate a batch of new images
+				gen_images = self.generator.predict(noise)
+
+				# Train the critic
+				X = np.concatenate([image_batch, gen_images])
+				d_loss = self.discriminator.train_on_batch(X, valid)
+				#d_loss_fake = self.critic.train_on_batch(gen_imgs, fake)
+				#d_loss = 0.5 * np.add(d_loss_fake, d_loss_real)
+
+				# Clip critic weights
+				for l in self.discriminator.layers:
+					weights = l.get_weights()
+					weights = [np.clip(w, -self.clip_value, self.clip_value) for w in weights]
+					l.set_weights(weights)
+
+
+			# ---------------------
+			#  Train Generator
+			# ---------------------
+
+			g_loss = self.combined.train_on_batch(noise, y_real)
 
 			# Print the progress
 			print ("%d [D loss: %f] [G loss: %f]" % (epoch, d_loss[0], g_loss[0]))
