@@ -116,7 +116,7 @@ class wGAN():
 		filename                   	= "data/train/braidedDataSmall.csv"
 		X_train                   	= load_file(filename)
 		(X_train, Y_train) 			= build_dataset(X_train, self.nrows, self.ncols)
-		X_train 					= np.expand_dims(X_train, axis=3)
+		X_train                   	= X_train[:, np.newaxis, :, :]
 
 		#batch_count 				= X_train.shape[0] / batch_size
 		batch_count 				= 1
