@@ -29,7 +29,7 @@ class wGAN():
 		self.nCriticIter 	= 5
 		self.clip_val 		= 0.01
 		self.learning_rate  = 0.0001
-		optim 	 			= RMSprop(lr = self.learning_rate, clipvalue = self.clip_val)
+		optim 	 			= RMSprop(lr = self.learning_rate)
 
 
 		# Build discriminator
@@ -124,10 +124,10 @@ class wGAN():
 		#batch_count 				= X_train.shape[0] / batch_size
 		batch_count 				= 1
 
-		# Labels
-		y_real 					= np.zeros((2*batch_size, 1))
-		# one-sided label smoothing
-		y_real[:batch_size] 	= .99*np.ones((batch_size, 1))
+		# Fake = -1 Real = 1
+		y_real 					= - np.ones((2*batch_size, 1))
+		# 
+		y_real[:batch_size] 	= np.ones((batch_size, 1))
 
 		for epoch in range(epochs+1):
 
@@ -151,8 +151,6 @@ class wGAN():
 
 				# Train the critic
 				X = np.concatenate([image_batch, gen_images])
-				print(X.shape)
-				print(y_real.shape)
 				d_loss = self.discriminator.train_on_batch(X, y_real)
 				#d_loss_fake = self.critic.train_on_batch(gen_imgs, fake)
 				#d_loss = 0.5 * np.add(d_loss_fake, d_loss_real)
@@ -168,7 +166,7 @@ class wGAN():
 			#  Train Generator
 			# ---------------------
 
-			g_loss = self.combined.train_on_batch(noise, np.zeros((batch_size,1)))
+			g_loss = self.combined.train_on_batch(noise, y_real[batch_size:])
 
 			# Print the progress
 			print ("%d [D loss: %f] [G loss: %f]" % (epoch, d_loss[0], g_loss[0]))
