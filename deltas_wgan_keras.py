@@ -58,22 +58,21 @@ class wGAN():
 	def buildGenerator(self):
 
 		generator = Sequential()
-		generator.add(Dense(256 * 12 * 12, input_dim=self.latent_dim, 
-							kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+		generator.add(Dense(256*12*12, input_dim=randomDim, 
+  			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 		generator.add(Activation('relu'))
+		#generator.add(Dropout(0.2))
 		generator.add(Reshape((256, 12, 12)))
-		generator.add(UpSampling2D(size=(2,2)))
-		generator.add(Conv2D(128, kernel_size=(6,6), padding="same"))
+		generator.add(UpSampling2D(size=(2, 2)))
+		generator.add(Conv2D(128, kernel_size=(5,5), padding='same'))
 		generator.add(Activation('relu'))
-		#generator.add(BatchNormalization(momentum=0.8))
-		generator.add(UpSampling2D(size=(2,2)))
-		generator.add(Conv2D(64, kernel_size=(6,6), padding="same"))
+		#generator.add(Dropout(0.1))
+		generator.add(UpSampling2D(size=(2, 2)))
+		generator.add(Conv2D(64, kernel_size=(5, 5), padding='same'))
 		generator.add(Activation('relu'))
-		#generator.add(BatchNormalization(momentum=0.8))
-		generator.add(UpSampling2D(size=(2,2)))
-		#generator.add(Conv2D(32, kernel_size=(5,5), padding="same", activation = "relu"))
-		generator.add(Conv2D(1, kernel_size=(6,6), padding="same", activation = "sigmoid"))
-
+		#generator.add(Dropout(0.1))
+		generator.add(UpSampling2D(size=(2, 2)))
+		generator.add(Conv2D(1, kernel_size=(5, 5), padding='same', activation='sigmoid'))
 		generator.summary()
 
 		noise 	= Input(shape=(self.latent_dim,))

@@ -82,35 +82,37 @@ adam                              = Adam(lr=0.0002, beta_1=0.5)
 
 # Generator
 generator = Sequential()
-generator.add(Dense(256*12*12, input_dim=randomDim, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+generator.add(Dense(256*12*12, input_dim=randomDim, 
+  kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 generator.add(Activation('relu'))
-generator.add(Dropout(0.2))
+#generator.add(Dropout(0.2))
 generator.add(Reshape((256, 12, 12)))
 generator.add(UpSampling2D(size=(2, 2)))
-generator.add(Conv2D(128, kernel_size=(6,6), padding='same'))
+generator.add(Conv2D(128, kernel_size=(5,5), padding='same'))
 generator.add(Activation('relu'))
 #generator.add(Dropout(0.1))
 generator.add(UpSampling2D(size=(2, 2)))
-generator.add(Conv2D(64, kernel_size=(6, 6), padding='same'))
+generator.add(Conv2D(64, kernel_size=(5, 5), padding='same'))
 generator.add(Activation('relu'))
 #generator.add(Dropout(0.1))
 generator.add(UpSampling2D(size=(2, 2)))
-generator.add(Conv2D(1, kernel_size=(6, 6), padding='same', activation='sigmoid'))
+generator.add(Conv2D(1, kernel_size=(5, 5), padding='same', activation='sigmoid'))
 generator.summary()
 generator.compile(loss='binary_crossentropy', optimizer=adam)
 
 # Discriminator
 discriminator = Sequential()
-discriminator.add(Conv2D(64, kernel_size=(16, 16), strides=(2, 2), padding='same', input_shape=(1, nx, ny), kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+discriminator.add(Conv2D(64, kernel_size=(5, 5), strides=(2, 2), padding='same', 
+  input_shape=(1, nx, ny), kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 discriminator.add(LeakyReLU(0.2))
 discriminator.add(Dropout(0.3))
-discriminator.add(Conv2D(128, kernel_size=(8, 8), strides=(2, 2), padding='same'))
+discriminator.add(Conv2D(128, kernel_size=(5, 5), strides=(2, 2), padding='same'))
 discriminator.add(LeakyReLU(0.2))
 discriminator.add(Dropout(0.3))
-discriminator.add(Conv2D(256, kernel_size=(4, 4), strides=(2, 2), padding='same'))
+discriminator.add(Conv2D(256, kernel_size=(5, 5), strides=(2, 2), padding='same'))
 discriminator.add(LeakyReLU(0.2))
 discriminator.add(Dropout(0.3))
-discriminator.add(Conv2D(512, kernel_size=(4, 4), strides=(2, 2), padding='same'))
+discriminator.add(Conv2D(512, kernel_size=(5, 5), strides=(2, 2), padding='same'))
 discriminator.add(LeakyReLU(0.2))
 discriminator.add(Dropout(0.3))
 discriminator.add(Flatten())
@@ -140,7 +142,7 @@ def plotLoss(epoch):
     plt.savefig('images/dcgan_loss_epoch_%d.png' % epoch)
 
 # Create a wall of generated MNIST images
-def plotGeneratedImages(epoch, examples=100, dim=(10, 10), figsize=(10, 10)):
+def plotGeneratedImages(epoch, examples=25, dim=(5, 5), figsize=(10, 10)):
     noise = np.random.normal(0, 1, size=[examples, randomDim])
     generatedImages = generator.predict(noise)
 
@@ -155,7 +157,7 @@ def plotGeneratedImages(epoch, examples=100, dim=(10, 10), figsize=(10, 10)):
 # Save the generator and discriminator networks (and weights) for later use
 def saveModels(epoch):
     generator.save('models/dcgan_generator_epoch_%d.h5' % epoch)
-    discriminator.save('models/dcgan_discriminator_epoch_%d.h5' % epoch)
+    #discriminator.save('models/dcgan_discriminator_epoch_%d.h5' % epoch)
 
 def train(epochs=1, batchSize=128):
     batchCount = X_train.shape[0] / batchSize
