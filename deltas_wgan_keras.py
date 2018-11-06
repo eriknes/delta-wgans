@@ -23,7 +23,7 @@ class wGAN():
 		self.nrows 			= 96
 		self.ncols 			= 96
 		self.nchan 			= 1
-		self.dimensions 	= (self.nrows, self.ncols, self.nchan)
+		self.dimensions 	= (self.nchan, self.nrows, self.ncols)
 		self.latent_dim 	= 10
 
 		self.nCriticIter 	= 5
@@ -58,7 +58,7 @@ class wGAN():
 	def buildGenerator(self):
 
 		generator = Sequential()
-		generator.add(Dense(256*12*12, input_dim=randomDim, 
+		generator.add(Dense(256*12*12, input_dim=self.latent_dim, 
   			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 		generator.add(Activation('relu'))
 		#generator.add(Dropout(0.2))
@@ -72,7 +72,7 @@ class wGAN():
 		generator.add(Activation('relu'))
 		#generator.add(Dropout(0.1))
 		generator.add(UpSampling2D(size=(2, 2)))
-		generator.add(Conv2D(1, kernel_size=(5, 5), padding='same', activation='sigmoid'))
+		generator.add(Conv2D(self.nchan, kernel_size=(5, 5), padding='same', activation='sigmoid'))
 		generator.summary()
 
 		noise 	= Input(shape=(self.latent_dim,))
