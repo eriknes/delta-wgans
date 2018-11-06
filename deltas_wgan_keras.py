@@ -2,12 +2,11 @@ from __future__ import print_function, division
 
 import numpy as np
 import pandas as pd
-import tqdm
 import sys
 import matplotlib.pyplot as plt
+
+
 import keras.backend as K
-
-
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout
 from keras.layers import BatchNormalization, Activation, ZeroPadding2D
 from keras.layers.advanced_activations import LeakyReLU
@@ -44,10 +43,10 @@ class wGAN():
 		img = self.generator(z)
 
 		# For the combined model we will only train the generator
-		self.critic.trainable = False
+		self.discriminator.trainable = False
 
 		# The critic takes generated images as input and determines validity
-		valid = self.critic(img)
+		valid = self.discriminator(img)
 
 		# The combined model  (stacked generator and critic)
 		self.combined = Model(z, valid)
@@ -63,14 +62,14 @@ class wGAN():
 		generator.add(Dense(128 * 12 * 12, activation="relu", input_dim=self.latent_dim))
 		generator.add(Reshape((128, 12, 12)))
 		generator.add(UpSampling2D(size=(2,2)))
-		generator.add(Conv2D(128, kernel_size=5, padding="same"), activation = "relu")
+		generator.add(Conv2D(128, kernel_size=5, padding="same", activation = "relu"))
 		#generator.add(BatchNormalization(momentum=0.8))
 		generator.add(UpSampling2D(size=(2,2)))
-		generator.add(Conv2D(64, kernel_size=5, padding="same"), activation = "relu")
+		generator.add(Conv2D(64, kernel_size=5, padding="same", activation = "relu"))
 		#generator.add(BatchNormalization(momentum=0.8))
 		generator.add(UpSampling2D(size=(2,2)))
-		generator.add(Conv2D(32, kernel_size=5, padding="same"), activation = "relu")
-		generator.add(Conv2D(self.nchan, kernel_size=5, padding="same"), activation = "sigmoid")
+		generator.add(Conv2D(32, kernel_size=5, padding="same", activation = "relu"))
+		generator.add(Conv2D(self.nchan, kernel_size=5, padding="same", activation = "sigmoid"))
 
 		generator.summary()
 
@@ -116,7 +115,8 @@ class wGAN():
 		X_train                   	= load_file(filename)
 		(X_train, _), (_, _) 		= build_dataset(X_train, self.nrows, self.ncols)
 
-		batch_count 				= X_train.shape[0] / batch_size
+		#batch_count 				= X_train.shape[0] / batch_size
+		batch_count 				= 1
 
 		# Labels
 		y_real 					= np.zeros((2*batch_size, 1))
@@ -187,6 +187,13 @@ class wGAN():
 	def saveModels(self, epoch):
 		self.generator.save('models/wgan_generator_epoch_%d.h5' % epoch)
 		#self.discriminator.save('models/wgan_discriminator_epoch_%d.h5' % epoch)
+
+# Read csv file
+def load_file(fname):
+	 X = pd.read_csv(fname)
+	 X = X.values
+	 X = X.astype('uint8')
+	 return X
 
 if __name__ == '__main__':
 	wgan = wGAN()
