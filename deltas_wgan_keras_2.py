@@ -70,7 +70,7 @@ np.random.seed(1)
 randomDim                         = 10
 
 # Create dataset
-fname                             = "data/train/braidedData2.csv"
+fname                             = "data/train/braidedDataSmall.csv"
 X_train                           = load_file(fname)
 nx                                = 96
 ny                                = 96

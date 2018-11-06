@@ -113,7 +113,7 @@ class wGAN():
 	def trainGAN(self, epochs=1, batch_size=128, sample_interval=2):
 
 		# Load dataset
-		filename                   	= "data/train/braidedData2.csv"
+		filename                   	= "data/train/braidedDataSmall.csv"
 		X_train                   	= load_file(filename)
 		(X_train, Y_train) 			= build_dataset(X_train, self.nrows, self.ncols)
 		X_train 					= np.expand_dims(X_train, axis=3)
