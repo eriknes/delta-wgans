@@ -143,6 +143,8 @@ class wGAN():
 				gen_images = self.generator.predict(noise)
 
 				# Train the critic
+				print(image_batch.shape)
+				print(gen_images.shape)
 				X = np.concatenate([image_batch, gen_images])
 				d_loss = self.discriminator.train_on_batch(X, valid)
 				#d_loss_fake = self.critic.train_on_batch(gen_imgs, fake)
