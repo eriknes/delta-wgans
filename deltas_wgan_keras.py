@@ -58,8 +58,8 @@ class wGAN():
 	def buildGenerator(self):
 
 		generator = Sequential()
-		generator.add(Dense(256 * 12 * 12, input_dim=self.latent_dim),
-							kernel_initializer=initializers.RandomNormal(stddev=0.02))
+		generator.add(Dense(256 * 12 * 12, input_dim=self.latent_dim, 
+							kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 		generator.add(Activation('relu'))
 		generator.add(Reshape((256, 12, 12)))
 		generator.add(UpSampling2D())
