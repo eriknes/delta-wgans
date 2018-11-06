@@ -168,7 +168,7 @@ class wGAN():
 			#  Train Generator
 			# ---------------------
 
-			g_loss = self.combined.train_on_batch(noise, y_real)
+			g_loss = self.combined.train_on_batch(noise, np.ones(batch_size,1))
 
 			# Print the progress
 			print ("%d [D loss: %f] [G loss: %f]" % (epoch, d_loss[0], g_loss[0]))
