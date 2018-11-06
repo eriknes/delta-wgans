@@ -23,7 +23,7 @@ class wGAN():
 		self.ncols 			= 96
 		self.nchan 			= 1
 		self.dimensions 	= (self.nrows, self.ncols, self.nchan)
-		self.latent_dim 	= 20
+		self.latent_dim 	= 10
 
 		self.nCriticIter 	= 5
 		self.clip_val 		= 0.1
@@ -36,19 +36,19 @@ class wGAN():
 		self.discriminator.compile(loss = self.wLoss, optimizer = optim, metrics=['accuracy'])
 
        	# Build the generator
-		self.generator = self.buildGenerator()
+		self.generator 		= self.buildGenerator()
 		# The generator takes noise as input and generated imgs
-		z = Input(shape=(self.latent_dim,))
-		img = self.generator(z)
+		genInput 			= Input(shape=(self.latent_dim,))
+		img 				= self.generator(genInput)
 
 		# For the combined model we will only train the generator
 		self.discriminator.trainable = False
 
 		# The critic takes generated images as input and determines validity
-		valid = self.discriminator(img)
+		discOutput 			= self.discriminator(img)
 
 		# The combined model  (stacked generator and critic)
-		self.combined = Model(z, valid)
+		self.combined 		= Model(inputs = genInput, outputs = discOutput)
 		self.combined.compile(loss = self.wLoss, optimizer=optim, metrics=['accuracy'])
 
 	def wLoss(self, yReal, yPred):
@@ -57,18 +57,19 @@ class wGAN():
 	def buildGenerator(self):
 
 		generator = Sequential()
-
-		generator.add(Dense(128 * 12 * 12, activation="relu", input_dim=self.latent_dim))
-		generator.add(Reshape((128, 12, 12)))
-		generator.add(UpSampling2D(size=(2,2)))
-		generator.add(Conv2D(128, kernel_size=(5,5), padding="same", activation = "relu"))
+		generator.add(Dense(256 * 12 * 12, input_dim=self.latent_dim),
+							kernel_initializer=initializers.RandomNormal(stddev=0.02))
+		generator.add(Activation('relu'))
+		generator.add(Reshape((256, 12, 12)))
+		generator.add(UpSampling2D())
+		generator.add(Conv2D(128, kernel_size=(6,6), padding="same", activation = "relu"))
 		#generator.add(BatchNormalization(momentum=0.8))
-		generator.add(UpSampling2D(size=(2,2)))
-		generator.add(Conv2D(64, kernel_size=(5,5), padding="same", activation = "relu"))
+		generator.add(UpSampling2D())
+		generator.add(Conv2D(64, kernel_size=(6,6), padding="same", activation = "relu"))
 		#generator.add(BatchNormalization(momentum=0.8))
-		generator.add(UpSampling2D(size=(2,2)))
+		generator.add(UpSampling2D())
 		#generator.add(Conv2D(32, kernel_size=(5,5), padding="same", activation = "relu"))
-		generator.add(Conv2D(1, kernel_size=(5,5), padding="same", activation = "sigmoid"))
+		generator.add(Conv2D(1, kernel_size=(6,6), padding="same", activation = "sigmoid"))
 
 		generator.summary()
 
