@@ -69,20 +69,20 @@ class wGAN():
 		generator.add(UpSampling2D(size=(2, 2)))
 		generator.add(Conv2D(128, kernel_size=(5,5), padding='same', 
 			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-		generator.add(BatchNormalization(momentum=0.8))
+		#generator.add(BatchNormalization(momentum=0.8))
 		generator.add(Activation('relu'))
 		generator.add(UpSampling2D(size=(2, 2)))
-		generator.add(Conv2D(128, kernel_size=(5,5), padding='same', 
+		generator.add(Conv2D(128, kernel_size=(6,6), padding='same', 
 			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-		generator.add(BatchNormalization(momentum=0.8))
+		#generator.add(BatchNormalization(momentum=0.8))
 		generator.add(Activation('relu'))
 		generator.add(UpSampling2D(size=(2, 2)))
-		generator.add(Conv2D(64, kernel_size=(5, 5), padding='same', 
+		generator.add(Conv2D(64, kernel_size=(8, 8), padding='same', 
 			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-		generator.add(BatchNormalization(momentum=0.8))
+		#generator.add(BatchNormalization(momentum=0.8))
 		generator.add(Activation('relu'))
 		generator.add(UpSampling2D(size=(2, 2)))
-		generator.add(Conv2D(self.nchan, kernel_size=(5, 5), padding='same', activation='sigmoid'))
+		generator.add(Conv2D(self.nchan, kernel_size=(12, 12), padding='same', activation='sigmoid'))
 		generator.summary()
 
 		noise 	= Input(shape=(self.latent_dim,))
@@ -94,11 +94,11 @@ class wGAN():
 
 		discriminator = Sequential()
 
-		discriminator.add(Conv2D(32, kernel_size=(6,6), strides=2, input_shape=self.dimensions, 
+		discriminator.add(Conv2D(32, kernel_size=(12,12), strides=2, input_shape=self.dimensions, 
 			padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 		discriminator.add(LeakyReLU(alpha=0.2))
 		discriminator.add(Dropout(0.2))
-		discriminator.add(Conv2D(64, kernel_size=(6,6), strides=2, padding="same",
+		discriminator.add(Conv2D(64, kernel_size=(8,8), strides=2, padding="same",
 			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 		#discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
 		discriminator.add(BatchNormalization(momentum=0.8))
@@ -277,4 +277,4 @@ def build_dataset(X, nx, ny, n_test = 0):
 
 if __name__ == '__main__':
 	wgan = wGAN()
-	wgan.trainGAN(epochs = 5000, batch_size = 64, sample_interval = 50)
+	wgan.trainGAN(epochs = 5000, batch_size = 128, sample_interval = 50)
