@@ -116,7 +116,7 @@ class wGAN():
 	def trainGAN(self, epochs=1, batch_size=128, sample_interval=2):
 
 		# Load dataset
-		filename                   	= "data/train/braidedDataSmall.csv"
+		filename                   	= "data/train/braidedData2.csv"
 		X_train                   	= load_file(filename)
 		(X_train, Y_train) 			= build_dataset(X_train, self.nrows, self.ncols)
 		X_train                   	= X_train[:, np.newaxis, :, :]
@@ -125,9 +125,9 @@ class wGAN():
 		batch_count 				= 1
 
 		# Fake = -1 Real = 1
-		y_real 					= - np.ones((2*batch_size, 1))
+		y_fake 					= - np.ones((batch_size, 1))
 		# 
-		y_real[:batch_size] 	= np.ones((batch_size, 1))
+		y_real 					= np.ones((batch_size, 1))
 
 		for epoch in range(epochs+1):
 
@@ -149,11 +149,12 @@ class wGAN():
 				# Generate a batch of new images
 				gen_images = self.generator.predict(noise)
 
-				# Train the critic
-				X = np.concatenate([image_batch, gen_images])
-				d_loss = self.discriminator.train_on_batch(X, y_real)
+				# Train the critic (do not concatenate images)
+				#X = np.concatenate([image_batch, gen_images])
+				d_loss_real = self.discriminator.train_on_batch(image_batch, y_real)
+				d_loss_fake = self.discriminator.train_on_batch(gen_images, y_fake)
 				#d_loss_fake = self.critic.train_on_batch(gen_imgs, fake)
-				#d_loss = 0.5 * np.add(d_loss_fake, d_loss_real)
+				d_loss = 0.5 * np.add(d_loss_fake, d_loss_real)
 
 				# Clip critic weights
 				for l in self.discriminator.layers:
@@ -166,7 +167,7 @@ class wGAN():
 			#  Train Generator
 			# ---------------------
 
-			g_loss = self.combined.train_on_batch(noise, y_real[batch_size:])
+			g_loss = self.combined.train_on_batch(noise, y_fake)
 
 			# Print the progress
 			print ("%d [D loss: %f] [G loss: %f]" % (epoch, d_loss[0], g_loss[0]))
@@ -235,4 +236,4 @@ def build_dataset(X, nx, ny, n_test = 0):
 
 if __name__ == '__main__':
 	wgan = wGAN()
-	wgan.trainGAN(epochs = 100, batch_size = 128, sample_interval = 50)
+	wgan.trainGAN(epochs = 100, batch_size = 128, sample_interval = 10)
