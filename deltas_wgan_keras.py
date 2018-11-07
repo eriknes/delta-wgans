@@ -26,9 +26,9 @@ class wGAN():
 		self.dimensions 	= (self.nchan, self.nrows, self.ncols)
 		self.latent_dim 	= 10
 
-		self.nCriticIter 	= 10
+		self.nCriticIter 	= 5
 		self.clip_val 		= 0.01
-		self.learning_rate  = 0.00005
+		self.learning_rate  = 0.00003
 		optim 	 			= RMSprop(lr = self.learning_rate)
 
 
@@ -67,15 +67,18 @@ class wGAN():
 		#generator.add(Dropout(0.2))
 		generator.add(Reshape((256, 6, 6)))
 		generator.add(UpSampling2D(size=(2, 2)))
-		generator.add(Conv2D(128, kernel_size=(5,5), padding='same'))
+		generator.add(Conv2D(128, kernel_size=(5,5), padding='same', 
+			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 		#generator.add(BatchNormalization(momentum=0.8))
 		generator.add(Activation('relu'))
 		generator.add(UpSampling2D(size=(2, 2)))
-		generator.add(Conv2D(128, kernel_size=(5,5), padding='same'))
+		generator.add(Conv2D(128, kernel_size=(5,5), padding='same', 
+			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 		#generator.add(BatchNormalization(momentum=0.8))
 		generator.add(Activation('relu'))
 		generator.add(UpSampling2D(size=(2, 2)))
-		generator.add(Conv2D(64, kernel_size=(5, 5), padding='same'))
+		generator.add(Conv2D(64, kernel_size=(5, 5), padding='same', 
+			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 		#generator.add(BatchNormalization(momentum=0.8))
 		generator.add(Activation('relu'))
 		generator.add(UpSampling2D(size=(2, 2)))
