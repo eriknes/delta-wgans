@@ -221,7 +221,7 @@ class wGAN():
 		plt.close()
 
 	# Plot the loss from each batch
-	def plotLoss(epoch, dLosses, gLosses):
+	def plotLoss(self, epoch, dLosses, gLosses):
 		plt.figure(figsize=(10, 8))
 		plt.plot(dLosses, label='Discriminitive loss')
 		plt.plot(gLosses, label='Generative loss')
