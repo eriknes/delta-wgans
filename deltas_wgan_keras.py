@@ -18,7 +18,7 @@ from keras import initializers
 class wGAN():
 	def __init__(self):
 		# Deterministic output.
-		np.random.seed(1)
+		#np.random.seed(1)
 
 		self.nrows 			= 96
 		self.ncols 			= 96
@@ -26,7 +26,7 @@ class wGAN():
 		self.dimensions 	= (self.nchan, self.nrows, self.ncols)
 		self.latent_dim 	= 50
 
-		self.nCriticIter 	= 5
+		self.nCriticIter 	= 10
 		self.clip_val 		= 0.01
 		self.learning_rate  = 0.00005
 		optim 	 			= RMSprop(lr = self.learning_rate)
@@ -181,13 +181,13 @@ class wGAN():
 			#  Train Generator
 			# ---------------------
 
-			g_loss = self.combined.train_on_batch(noise, y_fake)
+			g_loss = self.combined.train_on_batch(noise, y_real)
 
 			dLosses.append(d_loss)
-			gLosses.append(g_loss)
+			gLosses.append(1-g_loss)
 
 			# Print the progress
-			print ("%d [D loss: %f] [G loss: %f]" % (epoch, d_loss[0], g_loss[0]))
+			print ("%d [D loss: %f] [G loss: %f]" % (epoch, d_loss[0], 1-g_loss[0]))
 
 			# If at save interval => save generated image samples
 			if epoch % sample_interval == 0:
