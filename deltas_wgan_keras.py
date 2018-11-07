@@ -181,7 +181,7 @@ class wGAN():
 			#  Train Generator
 			# ---------------------
 
-			g_loss = self.combined.train_on_batch(noise, y_real)
+			g_loss = self.combined.train_on_batch(noise, y_false)
 
 			dLosses.append(d_loss)
 			gLosses.append(g_loss)
