@@ -69,17 +69,17 @@ class wGAN():
 		generator.add(UpSampling2D(size=(2, 2)))
 		generator.add(Conv2D(128, kernel_size=(5,5), padding='same', 
 			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-		#generator.add(BatchNormalization(momentum=0.8))
+		generator.add(BatchNormalization(momentum=0.8))
 		generator.add(Activation('relu'))
 		generator.add(UpSampling2D(size=(2, 2)))
 		generator.add(Conv2D(128, kernel_size=(5,5), padding='same', 
 			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-		#generator.add(BatchNormalization(momentum=0.8))
+		generator.add(BatchNormalization(momentum=0.8))
 		generator.add(Activation('relu'))
 		generator.add(UpSampling2D(size=(2, 2)))
 		generator.add(Conv2D(64, kernel_size=(5, 5), padding='same', 
 			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-		#generator.add(BatchNormalization(momentum=0.8))
+		generator.add(BatchNormalization(momentum=0.8))
 		generator.add(Activation('relu'))
 		generator.add(UpSampling2D(size=(2, 2)))
 		generator.add(Conv2D(self.nchan, kernel_size=(5, 5), padding='same', activation='sigmoid'))
@@ -99,19 +99,19 @@ class wGAN():
 		discriminator.add(LeakyReLU(alpha=0.2))
 		discriminator.add(Dropout(0.2))
 		discriminator.add(Conv2D(64, kernel_size=(6,6), strides=2, padding="same",
-			kernel_initializer='he_normal'))
+			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 		#discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
-		#discriminator.add(BatchNormalization(momentum=0.8))
+		discriminator.add(BatchNormalization(momentum=0.8))
 		discriminator.add(LeakyReLU(alpha=0.2))
 		discriminator.add(Dropout(0.2))
 		discriminator.add(Conv2D(128, kernel_size=(6,6), strides=2, padding="same",
-			kernel_initializer='he_normal'))
-		#discriminator.add(BatchNormalization(momentum=0.8))
+			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+		discriminator.add(BatchNormalization(momentum=0.8))
 		discriminator.add(LeakyReLU(alpha=0.2))
 		discriminator.add(Dropout(0.2))
 		discriminator.add(Conv2D(256, kernel_size=(6,6), strides=2, padding="same",
-			kernel_initializer='he_normal'))
-		#discriminator.add(BatchNormalization(momentum=0.8))
+			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+		discriminator.add(BatchNormalization(momentum=0.8))
 		discriminator.add(LeakyReLU(alpha=0.2))
 		discriminator.add(Dropout(0.2))
 		discriminator.add(Flatten())
@@ -183,11 +183,11 @@ class wGAN():
 
 			g_loss = self.combined.train_on_batch(noise, y_real)
 
-			dLosses.append(d_loss[0])
+			dLosses.append(1.0 + d_loss[0])
 			gLosses.append(1.0 - g_loss[0])
 
 			# Print the progress
-			print ("%d [D loss: %f] [G loss: %f]" % (epoch, d_loss[0], 1.0-g_loss[0]))
+			print ("%d [D loss: %f] [G loss: %f]" % (epoch, 1.0 + d_loss[0], 1.0-g_loss[0]))
 
 			# If at save interval => save generated image samples
 			if epoch % sample_interval == 0:
