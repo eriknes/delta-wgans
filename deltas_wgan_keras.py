@@ -24,11 +24,11 @@ class wGAN():
 		self.ncols 			= 96
 		self.nchan 			= 1
 		self.dimensions 	= (self.nchan, self.nrows, self.ncols)
-		self.latent_dim 	= 10
+		self.latent_dim 	= 50
 
 		self.nCriticIter 	= 5
 		self.clip_val 		= 0.01
-		self.learning_rate  = 0.00003
+		self.learning_rate  = 0.00005
 		optim 	 			= RMSprop(lr = self.learning_rate)
 
 
@@ -101,17 +101,17 @@ class wGAN():
 		discriminator.add(Conv2D(64, kernel_size=(5,5), strides=2, padding="same",
 			kernel_initializer='he_normal'))
 		#discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
-		#discriminator.add(BatchNormalization(momentum=0.8))
+		discriminator.add(BatchNormalization(momentum=0.8))
 		discriminator.add(LeakyReLU(alpha=0.2))
 		discriminator.add(Dropout(0.2))
 		discriminator.add(Conv2D(128, kernel_size=(5,5), strides=2, padding="same",
 			kernel_initializer='he_normal'))
-		#discriminator.add(BatchNormalization(momentum=0.8))
+		discriminator.add(BatchNormalization(momentum=0.8))
 		discriminator.add(LeakyReLU(alpha=0.2))
 		discriminator.add(Dropout(0.2))
 		discriminator.add(Conv2D(256, kernel_size=(5,5), strides=2, padding="same",
 			kernel_initializer='he_normal'))
-		#discriminator.add(BatchNormalization(momentum=0.8))
+		discriminator.add(BatchNormalization(momentum=0.8))
 		discriminator.add(LeakyReLU(alpha=0.2))
 		discriminator.add(Dropout(0.2))
 		discriminator.add(Flatten())
@@ -136,9 +136,12 @@ class wGAN():
 		batch_count 				= 1
 
 		# Fake = 1 Real = -1
-		y_fake 					= np.ones((batch_size, 1))
+		y_fake 						= np.ones((batch_size, 1))
 		# 
-		y_real 					= -np.ones((batch_size, 1))
+		y_real 						= -np.ones((batch_size, 1))
+
+		dLosses                   	= []
+		gLosses                   	= []
 
 		for epoch in range(epochs+1):
 
@@ -180,6 +183,9 @@ class wGAN():
 
 			g_loss = self.combined.train_on_batch(noise, y_fake)
 
+	        dLosses.append(d_loss)
+        	gLosses.append(g_loss)
+
 			# Print the progress
 			print ("%d [D loss: %f] [G loss: %f]" % (epoch, d_loss[0], g_loss[0]))
 
@@ -188,6 +194,7 @@ class wGAN():
 				self.plotGeneratedImages(epoch)
 				self.plotSampleImages(epoch, image_batch)
 				self.saveModels(epoch)
+				self.plotLoss(epoch, dLosses, gLosses)
 
 	def plotGeneratedImages(self, epoch, examples=25, dim=(5, 5), figsize=(10, 10)):
 		noise = np.random.normal(0, 1, size=[examples, self.latent_dim])
@@ -212,6 +219,16 @@ class wGAN():
 		plt.tight_layout()
 		plt.savefig('images/training_samples_epoch_%d.png' % epoch)
 		plt.close()
+
+	# Plot the loss from each batch
+	def plotLoss(epoch, dLosses, gLosses):
+		plt.figure(figsize=(10, 8))
+		plt.plot(dLosses, label='Discriminitive loss')
+		plt.plot(gLosses, label='Generative loss')
+		plt.xlabel('Epoch')
+		plt.ylabel('Loss')
+		plt.legend()
+		plt.savefig('images/wgan_loss_epoch_%d.png' % epoch)
 
 	# Save the generator and discriminator networks (and weights) for later use
 	def saveModels(self, epoch):
