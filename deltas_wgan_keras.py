@@ -26,7 +26,7 @@ class wGAN():
 		self.dimensions 	= (self.nchan, self.nrows, self.ncols)
 		self.latent_dim 	= 10
 
-		self.nCriticIter 	= 5
+		self.nCriticIter 	= 10
 		self.clip_val 		= 0.01
 		self.learning_rate  = 0.00005
 		optim 	 			= RMSprop(lr = self.learning_rate)
@@ -67,19 +67,19 @@ class wGAN():
 		#generator.add(Dropout(0.2))
 		generator.add(Reshape((256, 6, 6)))
 		generator.add(UpSampling2D(size=(2, 2)))
-		generator.add(Conv2D(128, kernel_size=(4,4), padding='same'))
-		generator.add(BatchNormalization(momentum=0.8))
+		generator.add(Conv2D(128, kernel_size=(5,5), padding='same'))
+		#generator.add(BatchNormalization(momentum=0.8))
 		generator.add(Activation('relu'))
 		generator.add(UpSampling2D(size=(2, 2)))
-		generator.add(Conv2D(128, kernel_size=(4,4), padding='same'))
-		generator.add(BatchNormalization(momentum=0.8))
+		generator.add(Conv2D(128, kernel_size=(5,5), padding='same'))
+		#generator.add(BatchNormalization(momentum=0.8))
 		generator.add(Activation('relu'))
 		generator.add(UpSampling2D(size=(2, 2)))
-		generator.add(Conv2D(64, kernel_size=(4, 4), padding='same'))
-		generator.add(BatchNormalization(momentum=0.8))
+		generator.add(Conv2D(64, kernel_size=(5, 5), padding='same'))
+		#generator.add(BatchNormalization(momentum=0.8))
 		generator.add(Activation('relu'))
 		generator.add(UpSampling2D(size=(2, 2)))
-		generator.add(Conv2D(self.nchan, kernel_size=(4, 4), padding='same', activation='sigmoid'))
+		generator.add(Conv2D(self.nchan, kernel_size=(5, 5), padding='same', activation='sigmoid'))
 		generator.summary()
 
 		noise 	= Input(shape=(self.latent_dim,))
@@ -95,17 +95,20 @@ class wGAN():
 			padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 		discriminator.add(LeakyReLU(alpha=0.2))
 		discriminator.add(Dropout(0.2))
-		discriminator.add(Conv2D(64, kernel_size=(5,5), strides=2, padding="same"))
-		discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
-		discriminator.add(BatchNormalization(momentum=0.8))
+		discriminator.add(Conv2D(64, kernel_size=(5,5), strides=2, padding="same",
+			kernel_initializer='he_normal'))
+		#discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
+		#discriminator.add(BatchNormalization(momentum=0.8))
 		discriminator.add(LeakyReLU(alpha=0.2))
 		discriminator.add(Dropout(0.2))
-		discriminator.add(Conv2D(128, kernel_size=(5,5), strides=2, padding="same"))
-		discriminator.add(BatchNormalization(momentum=0.8))
+		discriminator.add(Conv2D(128, kernel_size=(5,5), strides=2, padding="same",
+			kernel_initializer='he_normal'))
+		#discriminator.add(BatchNormalization(momentum=0.8))
 		discriminator.add(LeakyReLU(alpha=0.2))
 		discriminator.add(Dropout(0.2))
-		discriminator.add(Conv2D(256, kernel_size=(5,5), strides=2, padding="same"))
-		discriminator.add(BatchNormalization(momentum=0.8))
+		discriminator.add(Conv2D(256, kernel_size=(5,5), strides=2, padding="same",
+			kernel_initializer='he_normal'))
+		#discriminator.add(BatchNormalization(momentum=0.8))
 		discriminator.add(LeakyReLU(alpha=0.2))
 		discriminator.add(Dropout(0.2))
 		discriminator.add(Flatten())
@@ -129,10 +132,10 @@ class wGAN():
 		#batch_count 				= X_train.shape[0] / batch_size
 		batch_count 				= 1
 
-		# Fake = -1 Real = 1
-		y_fake 					= - np.ones((batch_size, 1))
+		# Fake = 1 Real = -1
+		y_fake 					= np.ones((batch_size, 1))
 		# 
-		y_real 					= np.ones((batch_size, 1))
+		y_real 					= -np.ones((batch_size, 1))
 
 		for epoch in range(epochs+1):
 
@@ -253,4 +256,4 @@ def build_dataset(X, nx, ny, n_test = 0):
 
 if __name__ == '__main__':
 	wgan = wGAN()
-	wgan.trainGAN(epochs = 1000, batch_size = 128, sample_interval = 10)
+	wgan.trainGAN(epochs = 1000, batch_size = 64, sample_interval = 50)
