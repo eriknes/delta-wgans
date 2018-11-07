@@ -277,4 +277,4 @@ def build_dataset(X, nx, ny, n_test = 0):
 
 if __name__ == '__main__':
 	wgan = wGAN()
-	wgan.trainGAN(epochs = 1000, batch_size = 128, sample_interval = 50)
+	wgan.trainGAN(epochs = 1000, batch_size = 64, sample_interval = 50)
