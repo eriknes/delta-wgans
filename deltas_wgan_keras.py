@@ -28,7 +28,7 @@ class wGAN():
 
 		self.nCriticIter 	= 5
 		self.clip_val 		= 0.01
-		self.learning_rate  = 0.0001
+		self.learning_rate  = 0.00005
 		optim 	 			= RMSprop(lr = self.learning_rate)
 
 
@@ -61,21 +61,25 @@ class wGAN():
 	def buildGenerator(self):
 
 		generator = Sequential()
-		generator.add(Dense(256*12*12, input_dim=self.latent_dim, 
+		generator.add(Dense(256*6*6, input_dim=self.latent_dim, 
   			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 		generator.add(Activation('relu'))
 		#generator.add(Dropout(0.2))
-		generator.add(Reshape((256, 12, 12)))
+		generator.add(Reshape((256, 6, 6)))
 		generator.add(UpSampling2D(size=(2, 2)))
-		generator.add(Conv2D(128, kernel_size=(5,5), padding='same'))
+		generator.add(Conv2D(128, kernel_size=(4,4), padding='same'))
+		generator.add(BatchNormalization(momentum=0.8))
 		generator.add(Activation('relu'))
-		#generator.add(Dropout(0.1))
 		generator.add(UpSampling2D(size=(2, 2)))
-		generator.add(Conv2D(64, kernel_size=(5, 5), padding='same'))
+		generator.add(Conv2D(128, kernel_size=(4,4), padding='same'))
+		generator.add(BatchNormalization(momentum=0.8))
 		generator.add(Activation('relu'))
-		#generator.add(Dropout(0.1))
 		generator.add(UpSampling2D(size=(2, 2)))
-		generator.add(Conv2D(self.nchan, kernel_size=(5, 5), padding='same', activation='sigmoid'))
+		generator.add(Conv2D(64, kernel_size=(4, 4), padding='same'))
+		generator.add(BatchNormalization(momentum=0.8))
+		generator.add(Activation('relu'))
+		generator.add(UpSampling2D(size=(2, 2)))
+		generator.add(Conv2D(self.nchan, kernel_size=(4, 4), padding='same', activation='sigmoid'))
 		generator.summary()
 
 		noise 	= Input(shape=(self.latent_dim,))
@@ -87,22 +91,23 @@ class wGAN():
 
 		discriminator = Sequential()
 
-		discriminator.add(Conv2D(32, kernel_size=5, strides=2, input_shape=self.dimensions, padding="same"))
+		discriminator.add(Conv2D(32, kernel_size=(5,5), strides=2, input_shape=self.dimensions, 
+			padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 		discriminator.add(LeakyReLU(alpha=0.2))
-		discriminator.add(Dropout(0.25))
-		discriminator.add(Conv2D(64, kernel_size=5, strides=2, padding="same"))
+		discriminator.add(Dropout(0.2))
+		discriminator.add(Conv2D(64, kernel_size=(5,5), strides=2, padding="same"))
 		discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
 		discriminator.add(BatchNormalization(momentum=0.8))
 		discriminator.add(LeakyReLU(alpha=0.2))
-		discriminator.add(Dropout(0.25))
-		discriminator.add(Conv2D(128, kernel_size=5, strides=2, padding="same"))
+		discriminator.add(Dropout(0.2))
+		discriminator.add(Conv2D(128, kernel_size=(5,5), strides=2, padding="same"))
 		discriminator.add(BatchNormalization(momentum=0.8))
 		discriminator.add(LeakyReLU(alpha=0.2))
-		discriminator.add(Dropout(0.25))
-		discriminator.add(Conv2D(256, kernel_size=5, strides=1, padding="same"))
+		discriminator.add(Dropout(0.2))
+		discriminator.add(Conv2D(256, kernel_size=(5,5), strides=2, padding="same"))
 		discriminator.add(BatchNormalization(momentum=0.8))
 		discriminator.add(LeakyReLU(alpha=0.2))
-		discriminator.add(Dropout(0.25))
+		discriminator.add(Dropout(0.2))
 		discriminator.add(Flatten())
 		discriminator.add(Dense(1))
 
@@ -175,6 +180,7 @@ class wGAN():
 			# If at save interval => save generated image samples
 			if epoch % sample_interval == 0:
 				self.plotGeneratedImages(epoch)
+				self.plotSampleImages(epoch, image_batch)
 				self.saveModels(epoch)
 
 	def plotGeneratedImages(self, epoch, examples=25, dim=(5, 5), figsize=(10, 10)):
@@ -188,6 +194,17 @@ class wGAN():
 			plt.axis('off')
 		plt.tight_layout()
 		plt.savefig('images/wgan_image_epoch_%d.png' % epoch)
+		plt.close()
+
+	def plotSampleImages(self, epoch, images, examples=25, dim=(5, 5), figsize=(10, 10)):
+
+		plt.figure(figsize=figsize)
+		for i in range(examples):
+			plt.subplot(dim[0], dim[1], i+1)
+			plt.imshow(images[i, 0], interpolation='nearest', cmap='gray_r')
+			plt.axis('off')
+		plt.tight_layout()
+		plt.savefig('images/training_samples_epoch_%d.png' % epoch)
 		plt.close()
 
 	# Save the generator and discriminator networks (and weights) for later use
@@ -236,4 +253,4 @@ def build_dataset(X, nx, ny, n_test = 0):
 
 if __name__ == '__main__':
 	wgan = wGAN()
-	wgan.trainGAN(epochs = 100, batch_size = 128, sample_interval = 10)
+	wgan.trainGAN(epochs = 1000, batch_size = 128, sample_interval = 10)
