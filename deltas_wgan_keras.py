@@ -26,7 +26,7 @@ class wGAN():
 		self.dimensions 	= (self.nchan, self.nrows, self.ncols)
 		self.latent_dim 	= 50
 
-		self.nCriticIter 	= 10
+		self.nCriticIter 	= 5
 		self.clip_val 		= 0.01
 		self.learning_rate  = 0.00005
 		optim 	 			= RMSprop(lr = self.learning_rate)
@@ -94,24 +94,24 @@ class wGAN():
 
 		discriminator = Sequential()
 
-		discriminator.add(Conv2D(32, kernel_size=(5,5), strides=2, input_shape=self.dimensions, 
+		discriminator.add(Conv2D(32, kernel_size=(6,6), strides=2, input_shape=self.dimensions, 
 			padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 		discriminator.add(LeakyReLU(alpha=0.2))
 		discriminator.add(Dropout(0.2))
-		discriminator.add(Conv2D(64, kernel_size=(5,5), strides=2, padding="same",
+		discriminator.add(Conv2D(64, kernel_size=(6,6), strides=2, padding="same",
 			kernel_initializer='he_normal'))
 		#discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
-		discriminator.add(BatchNormalization(momentum=0.8))
+		#discriminator.add(BatchNormalization(momentum=0.8))
 		discriminator.add(LeakyReLU(alpha=0.2))
 		discriminator.add(Dropout(0.2))
-		discriminator.add(Conv2D(128, kernel_size=(5,5), strides=2, padding="same",
+		discriminator.add(Conv2D(128, kernel_size=(6,6), strides=2, padding="same",
 			kernel_initializer='he_normal'))
-		discriminator.add(BatchNormalization(momentum=0.8))
+		#discriminator.add(BatchNormalization(momentum=0.8))
 		discriminator.add(LeakyReLU(alpha=0.2))
 		discriminator.add(Dropout(0.2))
-		discriminator.add(Conv2D(256, kernel_size=(5,5), strides=2, padding="same",
+		discriminator.add(Conv2D(256, kernel_size=(6,6), strides=2, padding="same",
 			kernel_initializer='he_normal'))
-		discriminator.add(BatchNormalization(momentum=0.8))
+		#discriminator.add(BatchNormalization(momentum=0.8))
 		discriminator.add(LeakyReLU(alpha=0.2))
 		discriminator.add(Dropout(0.2))
 		discriminator.add(Flatten())
@@ -183,11 +183,11 @@ class wGAN():
 
 			g_loss = self.combined.train_on_batch(noise, y_real)
 
-			dLosses.append(d_loss)
-			gLosses.append(g_loss)
+			dLosses.append(d_loss[0])
+			gLosses.append(1.0 - g_loss[0])
 
 			# Print the progress
-			print ("%d [D loss: %f] [G loss: %f]" % (epoch, 1-d_loss[0], 1-g_loss[0]))
+			print ("%d [D loss: %f] [G loss: %f]" % (epoch, d_loss[0], 1.0-g_loss[0]))
 
 			# If at save interval => save generated image samples
 			if epoch % sample_interval == 0:
