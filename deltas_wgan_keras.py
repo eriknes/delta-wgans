@@ -97,16 +97,16 @@ class wGAN():
 		discriminator.add(Conv2D(32, kernel_size=(8,8), strides=2, input_shape=self.dimensions, 
 			padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 		discriminator.add(LeakyReLU())
-		#discriminator.add(Dropout(0.2))
+		discriminator.add(Dropout(0.2))
 		discriminator.add(Conv2D(64, kernel_size=(8,8), strides=2, padding="same",
 			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 		#discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
 		discriminator.add(BatchNormalization(momentum=0.8))
 		discriminator.add(LeakyReLU())
-		#discriminator.add(Dropout(0.2))
+		discriminator.add(Dropout(0.2))
 		discriminator.add(Conv2D(128, kernel_size=(5,5), strides=2, padding="same",
 			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-		#discriminator.add(BatchNormalization(momentum=0.8))
+		discriminator.add(BatchNormalization(momentum=0.8))
 		discriminator.add(LeakyReLU())
 		#discriminator.add(Dropout(0.2))
 		discriminator.add(Conv2D(256, kernel_size=(4,4), strides=2, padding="same",
