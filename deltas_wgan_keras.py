@@ -20,6 +20,7 @@ class wGAN():
 		# Deterministic output.
 		#np.random.seed(1)
 
+		K.set_image_dim_ordering('th')
 		self.nrows 			= 96
 		self.ncols 			= 96
 		self.nchan 			= 1
@@ -28,7 +29,7 @@ class wGAN():
 
 		self.nCriticIter 	= 5
 		self.clip_val 		= 0.01
-		self.learning_rate  = 0.00005
+		self.learning_rate  = 0.0002
 		optim 	 			= RMSprop(lr = self.learning_rate)
 
 
@@ -129,7 +130,7 @@ class wGAN():
 		X_train                   	= X_train[:, np.newaxis, :, :]
 
 		#batch_count 				= X_train.shape[0] / batch_size
-		batch_count 				= 5
+		batch_count 				= 10
 
 		# Fake = 1 Real = -1
 		y_fake 						= np.ones((batch_size, 1))
@@ -188,7 +189,7 @@ class wGAN():
 			# If at save interval => save generated image samples
 			if epoch % sample_interval == 0:
 				self.plotGeneratedImages(epoch)
-				self.plotSampleImages(epoch, image_batch)
+				#self.plotSampleImages(epoch, image_batch)
 				self.saveModels(epoch)
 				self.plotLoss(epoch, dLosses, gLosses)
 
@@ -273,4 +274,4 @@ def build_dataset(X, nx, ny, n_test = 0):
 
 if __name__ == '__main__':
 	wgan = wGAN()
-	wgan.trainGAN(epochs = 5000, batch_size = 32, sample_interval = 10)
+	wgan.trainGAN(epochs = 5000, batch_size = 128, sample_interval = 50)
