@@ -145,7 +145,7 @@ class wGAN():
 
 		for epoch in range(epochs+1):
 
-			for _ in xrange(batchCount):
+			for _ in range(batchCount):
 
 				for _ in range(self.nCriticIter):
 
