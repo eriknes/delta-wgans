@@ -72,12 +72,12 @@ class wGAN():
 		#generator.add(BatchNormalization(momentum=0.8))
 		generator.add(Activation('relu'))
 		generator.add(UpSampling2D(size=(2, 2)))
-		generator.add(Conv2D(128, kernel_size=(6,6), padding='same', 
+		generator.add(Conv2D(128, kernel_size=(5,5), padding='same', 
 			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 		#generator.add(BatchNormalization(momentum=0.8))
 		generator.add(Activation('relu'))
 		generator.add(UpSampling2D(size=(2, 2)))
-		generator.add(Conv2D(64, kernel_size=(8, 8), padding='same', 
+		generator.add(Conv2D(64, kernel_size=(5, 5), padding='same', 
 			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 		#generator.add(BatchNormalization(momentum=0.8))
 		generator.add(Activation('relu'))
@@ -94,28 +94,28 @@ class wGAN():
 
 		discriminator = Sequential()
 
-		discriminator.add(Conv2D(32, kernel_size=(12,12), strides=2, input_shape=self.dimensions, 
+		discriminator.add(Conv2D(32, kernel_size=(8,8), strides=2, input_shape=self.dimensions, 
 			padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-		discriminator.add(LeakyReLU(alpha=0.2))
-		discriminator.add(Dropout(0.2))
+		discriminator.add(LeakyReLU())
+		#discriminator.add(Dropout(0.2))
 		discriminator.add(Conv2D(64, kernel_size=(8,8), strides=2, padding="same",
 			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 		#discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
 		discriminator.add(BatchNormalization(momentum=0.8))
-		discriminator.add(LeakyReLU(alpha=0.2))
-		discriminator.add(Dropout(0.2))
-		discriminator.add(Conv2D(128, kernel_size=(6,6), strides=2, padding="same",
+		discriminator.add(LeakyReLU())
+		#discriminator.add(Dropout(0.2))
+		discriminator.add(Conv2D(128, kernel_size=(5,5), strides=2, padding="same",
 			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-		discriminator.add(BatchNormalization(momentum=0.8))
-		discriminator.add(LeakyReLU(alpha=0.2))
-		discriminator.add(Dropout(0.2))
-		discriminator.add(Conv2D(256, kernel_size=(6,6), strides=2, padding="same",
+		#discriminator.add(BatchNormalization(momentum=0.8))
+		discriminator.add(LeakyReLU())
+		#discriminator.add(Dropout(0.2))
+		discriminator.add(Conv2D(256, kernel_size=(4,4), strides=2, padding="same",
 			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-		discriminator.add(BatchNormalization(momentum=0.8))
-		discriminator.add(LeakyReLU(alpha=0.2))
-		discriminator.add(Dropout(0.2))
+		#discriminator.add(BatchNormalization(momentum=0.8))
+		discriminator.add(LeakyReLU())
+		#discriminator.add(Dropout(0.2))
 		discriminator.add(Flatten())
-		discriminator.add(Dense(1))
+		discriminator.add(Dense(1, kernel_initializer='he_normal'))
 
 		discriminator.summary()
 
@@ -133,7 +133,7 @@ class wGAN():
 		X_train                   	= X_train[:, np.newaxis, :, :]
 
 		#batch_count 				= X_train.shape[0] / batch_size
-		batch_count 				= 1
+		batch_count 				= 5
 
 		# Fake = 1 Real = -1
 		y_fake 						= np.ones((batch_size, 1))
@@ -145,43 +145,43 @@ class wGAN():
 
 		for epoch in range(epochs+1):
 
-			#for _ in xrange(batchCount):
+			for _ in xrange(batchCount):
 
-			for _ in range(self.nCriticIter):
+				for _ in range(self.nCriticIter):
+
+					# ---------------------
+					#  1 Train Discriminator
+					# ---------------------
+
+					# Select a random batch of images
+					idx = np.random.randint(0, X_train.shape[0], batch_size)
+					image_batch = X_train[idx]
+
+					# Sample noise as generator input
+					noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim])
+
+					# Generate a batch of new images
+					gen_images = self.generator.predict(noise)
+
+					# Train the critic (do not concatenate images)
+					#X = np.concatenate([image_batch, gen_images])
+					d_loss_real = self.discriminator.train_on_batch(image_batch, y_real)
+					d_loss_fake = self.discriminator.train_on_batch(gen_images, y_fake)
+					#d_loss_fake = self.critic.train_on_batch(gen_imgs, fake)
+					d_loss = 0.5 * np.add(d_loss_fake, d_loss_real)
+
+					# Clip critic weights
+					for l in self.discriminator.layers:
+						weights = l.get_weights()
+						weights = [np.clip(w, -self.clip_val, self.clip_val) for w in weights]
+						l.set_weights(weights)
+
 
 				# ---------------------
-				#  1 Train Discriminator
+				#  Train Generator
 				# ---------------------
 
-				# Select a random batch of images
-				idx = np.random.randint(0, X_train.shape[0], batch_size)
-				image_batch = X_train[idx]
-
-				# Sample noise as generator input
-				noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim])
-
-				# Generate a batch of new images
-				gen_images = self.generator.predict(noise)
-
-				# Train the critic (do not concatenate images)
-				#X = np.concatenate([image_batch, gen_images])
-				d_loss_real = self.discriminator.train_on_batch(image_batch, y_real)
-				d_loss_fake = self.discriminator.train_on_batch(gen_images, y_fake)
-				#d_loss_fake = self.critic.train_on_batch(gen_imgs, fake)
-				d_loss = 0.5 * np.add(d_loss_fake, d_loss_real)
-
-				# Clip critic weights
-				for l in self.discriminator.layers:
-					weights = l.get_weights()
-					weights = [np.clip(w, -self.clip_val, self.clip_val) for w in weights]
-					l.set_weights(weights)
-
-
-			# ---------------------
-			#  Train Generator
-			# ---------------------
-
-			g_loss = self.combined.train_on_batch(noise, y_real)
+				g_loss = self.combined.train_on_batch(noise, y_real)
 
 			dLosses.append(1.0 + d_loss[0])
 			gLosses.append(1.0 - g_loss[0])
@@ -277,4 +277,4 @@ def build_dataset(X, nx, ny, n_test = 0):
 
 if __name__ == '__main__':
 	wgan = wGAN()
-	wgan.trainGAN(epochs = 5000, batch_size = 128, sample_interval = 50)
+	wgan.trainGAN(epochs = 5000, batch_size = 64, sample_interval = 10)
