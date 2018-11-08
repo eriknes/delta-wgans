@@ -24,7 +24,7 @@ class wGAN():
 		self.ncols 			= 96
 		self.nchan 			= 1
 		self.dimensions 	= (self.nchan, self.nrows, self.ncols)
-		self.latent_dim 	= 50
+		self.latent_dim 	= 20
 
 		self.nCriticIter 	= 5
 		self.clip_val 		= 0.01
@@ -61,28 +61,24 @@ class wGAN():
 	def buildGenerator(self):
 
 		generator = Sequential()
-		generator.add(Dense(256*6*6, input_dim=self.latent_dim, 
+		generator.add(Dense(256*12*12, input_dim=self.latent_dim, 
   			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-		generator.add(Activation('relu'))
+		generator.add(LeakyReLU())
 		#generator.add(Dropout(0.2))
-		generator.add(Reshape((256, 6, 6)))
+		generator.add(Reshape((256, 12, 12)))
+
 		generator.add(UpSampling2D(size=(2, 2)))
-		generator.add(Conv2D(128, kernel_size=(5,5), padding='same', 
+		generator.add(Conv2D(128, kernel_size=(6,6), padding='same', 
 			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 		#generator.add(BatchNormalization(momentum=0.8))
-		generator.add(Activation('relu'))
+		generator.add(LeakyReLU())
 		generator.add(UpSampling2D(size=(2, 2)))
-		generator.add(Conv2D(128, kernel_size=(5,5), padding='same', 
+		generator.add(Conv2D(64, kernel_size=(10, 10), padding='same', 
 			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 		#generator.add(BatchNormalization(momentum=0.8))
-		generator.add(Activation('relu'))
+		generator.add(LeakyReLU())
 		generator.add(UpSampling2D(size=(2, 2)))
-		generator.add(Conv2D(64, kernel_size=(5, 5), padding='same', 
-			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-		#generator.add(BatchNormalization(momentum=0.8))
-		generator.add(Activation('relu'))
-		generator.add(UpSampling2D(size=(2, 2)))
-		generator.add(Conv2D(self.nchan, kernel_size=(12, 12), padding='same', activation='sigmoid'))
+		generator.add(Conv2D(self.nchan, kernel_size=(16, 16), padding='same', activation='sigmoid'))
 		generator.summary()
 
 		noise 	= Input(shape=(self.latent_dim,))
@@ -94,17 +90,17 @@ class wGAN():
 
 		discriminator = Sequential()
 
-		discriminator.add(Conv2D(32, kernel_size=(8,8), strides=2, input_shape=self.dimensions, 
+		discriminator.add(Conv2D(32, kernel_size=(16,16), strides=2, input_shape=self.dimensions, 
 			padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 		discriminator.add(LeakyReLU())
 		discriminator.add(Dropout(0.2))
-		discriminator.add(Conv2D(64, kernel_size=(8,8), strides=2, padding="same",
+		discriminator.add(Conv2D(64, kernel_size=(10,10), strides=2, padding="same",
 			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 		#discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
 		discriminator.add(BatchNormalization(momentum=0.8))
 		discriminator.add(LeakyReLU())
 		discriminator.add(Dropout(0.2))
-		discriminator.add(Conv2D(128, kernel_size=(5,5), strides=2, padding="same",
+		discriminator.add(Conv2D(128, kernel_size=(6,6), strides=2, padding="same",
 			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 		discriminator.add(BatchNormalization(momentum=0.8))
 		discriminator.add(LeakyReLU())
