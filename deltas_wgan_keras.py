@@ -97,17 +97,17 @@ class wGAN():
 		discriminator.add(Conv2D(64, kernel_size=(10,10), strides=2, padding="same",
 			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 		#discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
-		discriminator.add(BatchNormalization(momentum=0.8))
+		discriminator.add(BatchNormalization(momentum=0.9))
 		discriminator.add(LeakyReLU())
 		discriminator.add(Dropout(0.2))
 		discriminator.add(Conv2D(128, kernel_size=(6,6), strides=2, padding="same",
 			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-		discriminator.add(BatchNormalization(momentum=0.8))
+		discriminator.add(BatchNormalization(momentum=0.9))
 		discriminator.add(LeakyReLU())
 		#discriminator.add(Dropout(0.2))
 		discriminator.add(Conv2D(256, kernel_size=(4,4), strides=2, padding="same",
 			kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-		#discriminator.add(BatchNormalization(momentum=0.8))
+		discriminator.add(BatchNormalization(momentum=0.9))
 		discriminator.add(LeakyReLU())
 		#discriminator.add(Dropout(0.2))
 		discriminator.add(Flatten())
@@ -273,4 +273,4 @@ def build_dataset(X, nx, ny, n_test = 0):
 
 if __name__ == '__main__':
 	wgan = wGAN()
-	wgan.trainGAN(epochs = 5000, batch_size = 64, sample_interval = 10)
+	wgan.trainGAN(epochs = 5000, batch_size = 32, sample_interval = 10)
