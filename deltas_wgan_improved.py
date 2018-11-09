@@ -65,7 +65,7 @@ class wGAN():
         #self.nCriticIter    = 5
         #self.clip_val       = 0.01
 
-        optim               = Adam(lr = 0.0001, beta_1 = 0.5, beta_2 = 0.9)
+        optim               = Adam(lr = 0.00005, beta_1 = 0.5, beta_2 = 0.9)
 
 
         # Build the generator
@@ -213,9 +213,9 @@ class wGAN():
             print("Epoch: ", epoch)
             #print("Number of batches: ", int(X_train.shape[0] // BATCH_SIZE))
 
-            for i in range(batch_count-1):
+            for _ in range(batch_count):
 
-                discriminator_minibatches = X_train[i * minibatch_size:(i + 1) * minibatch_size]
+                #discriminator_minibatches = X_train[i * minibatch_size:(i + 1) * minibatch_size]
 
                 for j in range(N_CRITIC_ITER):
 
@@ -224,8 +224,9 @@ class wGAN():
                     # ---------------------
 
                     # Select a random batch of images
-                    
-                    image_batch = discriminator_minibatches[j*batch_size:(j+1)*batch_size]
+                    idx = np.random.randint(0, X_train.shape[0], batch_size)
+                    image_batch = X_train[idx]
+                    #image_batch = discriminator_minibatches[j*batch_size:(j+1)*batch_size]
 
                     # Sample noise as generator input
                     noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim]).astype(np.float32)
