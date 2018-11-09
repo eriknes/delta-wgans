@@ -76,8 +76,8 @@ class wGAN():
         generator_input     = Input(shape=(self.latent_dim,))
         generator_layers    = self.generator(generator_input)
         discriminator_layers= self.discriminator(generator_layers)
-        generator_model     = Model(inputs=[generator_input], outputs=[discriminator_layers])
-        generator_model.compile(optimizer = optim, loss = wassersteinLoss)
+        self.generator_model     = Model(inputs=[generator_input], outputs=[discriminator_layers])
+        self.generator_model.compile(optimizer = optim, loss = wassersteinLoss)
 
         # After generator model compilation, we make the discriminator layers trainable.
         for layer in self.discriminator.layers:
@@ -111,22 +111,16 @@ class wGAN():
 
         # If we don't concatenate the real and generated samples, however, we get three outputs: One of the generated
         # samples, one of the real samples, and one of the averaged samples, all of size BATCH_SIZE. This works neatly!
-        discriminator_model = Model(inputs=[real_samples, generator_input_for_discriminator],
+        self.discriminator_model = Model(inputs=[real_samples, generator_input_for_discriminator],
                                     outputs=[discriminator_output_from_real_samples,
                                              discriminator_output_from_generator,
                                              averaged_samples_out])
         # We use the Adam paramaters from Gulrajani et al. We use the Wasserstein loss for both the real and generated
         # samples, and the gradient penalty loss for the averaged samples.
-        discriminator_model.compile(optimizer= optim,
+        self.discriminator_model.compile(optimizer= optim,
                                     loss=[wassersteinLoss,
                                           wassersteinLoss,
                                           partial_gp_loss])
-        # We make three label vectors for training. positive_y is the label vector for real samples, with value 1.
-        # negative_y is the label vector for generated samples, with value -1. The dummy_y vector is passed to the
-        # gradient_penalty loss function and is not used.
-        positive_y = np.ones((self.batch_size, 1), dtype=np.float32)
-        negative_y = -positive_y
-        dummy_y = np.zeros((self.batch_size, 1), dtype=np.float32)
 
 
     def buildGenerator(self):
@@ -194,66 +188,57 @@ class wGAN():
     def trainGAN(self, X_train, epochs=1, batch_size=128, sample_interval=2):
 
         
-        #X_train                     = load_file(filename)
-        #(X_train, Y_train)          = build_dataset(X_train, self.nrows, self.ncols)
-        X_train                     = X_train[:, np.newaxis, :, :]
+        # We make three label vectors for training. positive_y is the label vector for real samples, with value 1.
+        # negative_y is the label vector for generated samples, with value -1. The dummy_y vector is passed to the
+        # gradient_penalty loss function and is not used.
+        positive_y  = np.ones((self.batch_size, 1), dtype=np.float32)
+        negative_y  = -positive_y
+        dummy_y     = np.zeros((self.batch_size, 1), dtype=np.float32)
 
-        #batch_count                = X_train.shape[0] / batch_size
-        #batch_count                 = 10
-
-        # Fake = 1 Real = -1
-        y_fake                      = np.ones((batch_size, 1))
-        # 
-        y_real                      = -np.ones((batch_size, 1))
+        batch_count = int(X_train.shape[0] / (self.batch_size * self.nCriticIter))
+        minibatch_size = int(self.batch_count * self.nCriticIter)
 
         dLosses                     = []
         gLosses                     = []
 
-        for epoch in range(epochs+1):
+        for epoch in range(epochs + 1):
+            # shuffle Xtrain
+            np.random.shuffle(X_train)
 
-            for _ in range(batch_count):
+            for i in range(self.batch_count):
 
-                for _ in range(self.nCriticIter):
+                discriminator_minibatches = X_train[i * minibatch_size:(i + 1) * minibatches_size]
+
+                for j in range(self.nCriticIter):
 
                     # ---------------------
                     #  1 Train Discriminator
                     # ---------------------
 
                     # Select a random batch of images
-                    idx = np.random.randint(0, X_train.shape[0], batch_size)
-                    image_batch = X_train[idx]
+                    
+                    image_batch = discriminator_minibatches[j*batch_size:(j+1)*batch_size]
 
                     # Sample noise as generator input
-                    noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim])
+                    noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim]).astype(np.float32)
 
                     # Generate a batch of new images
-                    gen_images = self.generator.predict(noise)
-
-                    # Train the critic (do not concatenate images)
-                    #X = np.concatenate([image_batch, gen_images])
-                    d_loss_real = self.discriminator.train_on_batch(image_batch, y_real)
-                    d_loss_fake = self.discriminator.train_on_batch(gen_images, y_fake)
-                    #d_loss_fake = self.critic.train_on_batch(gen_imgs, fake)
-                    d_loss = 0.5 * np.add(d_loss_fake, d_loss_real)
-
-                    # Clip critic weights
-                    for l in self.discriminator.layers:
-                        weights = l.get_weights()
-                        weights = [np.clip(w, -self.clip_val, self.clip_val) for w in weights]
-                        l.set_weights(weights)
+                    #gen_images = self.generator.predict(noise)
+                    d_loss = self.discriminator_model.train_on_batch([image_batch, noise],
+                                                                 [positive_y, negative_y, dummy_y])
+                    dLosses.append(d_loss[0])
 
 
                 # ---------------------
-                #  Train Generator
+                #  2 Train Generator
                 # ---------------------
 
-                g_loss = self.combined.train_on_batch(noise, y_real)
-
-            dLosses.append(1.0 + d_loss[0])
-            gLosses.append(1.0 - g_loss[0])
+                g_loss = self.combined.train_on_batch(noise, positive_y)
+                gLosses.append(g_loss[0])
+             
 
             # Print the progress
-            print ("%d [D loss: %f] [G loss: %f]" % (epoch, 1.0 + d_loss[0], 1.0-g_loss[0]))
+            print ("%d [D loss: %f] [G loss: %f]" % (epoch, 1.0 + d_loss[0], g_loss[0]))
 
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
@@ -347,7 +332,7 @@ if __name__ == '__main__':
     # Load dataset
     filename                    = "data/train/braidedData2.csv"
     (X_train, y_train) = build_dataset(filename, 96, 96, 0)
+    X_train                     = X_train[:, np.newaxis, :, :]
 
-    wgan = wGAN()
-    wgan.trainGAN(X_train, epochs = 500, batch_size = 128, sample_interval = 10)
-    
+    wgan = wGAN(X_train)
+    wgan.trainGAN(X_train, epochs = 50, batch_size = 64, sample_interval = 5)
