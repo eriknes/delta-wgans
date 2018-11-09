@@ -69,7 +69,7 @@ class wGAN():
 
 
         # Build the generator
-        self.generator      = self.buildGenerator()
+        self.generator      = self.buildGeneratorConv()
         # Build discriminator
         self.discriminator  = self.buildDiscriminator()
         # Set trainable = false for the discriminator layers in full model
@@ -128,7 +128,6 @@ class wGAN():
                                           wassersteinLoss,
                                           partial_gp_loss])
 
-
     def buildGenerator(self):
 
         bn_axis = 1
@@ -166,6 +165,50 @@ class wGAN():
         generator.add(LeakyReLU())
         generator.add(Convolution2D(64, (5, 5), padding='same'))
         generator.add(BatchNormalization())
+        generator.add(LeakyReLU())
+
+        generator.add(Conv2D(self.nchan, kernel_size=(5, 5), padding='same', activation='sigmoid'))
+        generator.summary()
+
+        return generator
+
+    def buildGeneratorConv(self):
+
+        bn_axis = 1
+
+        generator = Sequential()
+        generator.add(Dense(1024, input_dim=self.latent_dim))
+        generator.add(LeakyReLU())
+
+        #generator.add(Activation("relu"))
+        
+        generator.add(Dense(64*12*12, input_dim=self.latent_dim))
+        #generator.add(BatchNormalization())
+        generator.add(LeakyReLU())
+        generator.add(Reshape((64, 12, 12), input_shape=(128 * 12 * 12,)))
+
+        # 24 x 24
+        generator.add(Conv2DTranspose(128, (5, 5), strides=2, padding='same'))
+        #generator.add(BatchNormalization())
+        generator.add(LeakyReLU())
+        generator.add(Convolution2D(128, (5, 5), padding='same'))
+        #generator.add(BatchNormalization())
+        generator.add(LeakyReLU())
+
+        # 48 x 48
+        generator.add(Conv2DTranspose(64, (5, 5), strides=2, padding='same'))
+        #generator.add(BatchNormalization())
+        generator.add(LeakyReLU())
+        generator.add(Convolution2D(64, (5, 5), padding='same'))
+        #generator.add(BatchNormalization())
+        generator.add(LeakyReLU())
+
+        # 96 x 96
+        generator.add(Conv2DTranspose(64, (5, 5), strides=2, padding='same'))
+        #generator.add(BatchNormalization())
+        generator.add(LeakyReLU())
+        generator.add(Convolution2D(64, (5, 5), padding='same'))
+        #generator.add(BatchNormalization())
         generator.add(LeakyReLU())
 
         generator.add(Conv2D(self.nchan, kernel_size=(5, 5), padding='same', activation='sigmoid'))
@@ -224,7 +267,7 @@ class wGAN():
         negative_y  = - positive_y
         dummy_y     = np.zeros((self.batch_size, 1), dtype=np.float32)
 
-        batch_count = 5
+        batch_count = 10
         #batch_count = int(X_train.shape[0] / (self.batch_size * N_CRITIC_ITER))
         #minibatch_size = int(batch_count * N_CRITIC_ITER)
 
@@ -234,7 +277,7 @@ class wGAN():
         for epoch in range(epochs + 1):
             # shuffle Xtrain
             np.random.shuffle(X_train)
-            print("Epoch: ", epoch)
+            #print("Epoch: ", epoch)
             #print("Number of batches: ", int(X_train.shape[0] // BATCH_SIZE))
 
             for i in range(batch_count):
