@@ -17,7 +17,8 @@ from keras.optimizers import RMSprop, Adam
 from keras import initializers
 from functools import partial
 
-BATCH_SIZE = 64
+BATCH_SIZE              = 64
+GRADIENT_PENALTY_WEIGHT = 10
 
 def wassersteinLoss(y_true, y_pred):
     """Wasserstein loss for a sample batch."""
