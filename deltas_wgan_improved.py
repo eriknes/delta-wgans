@@ -131,29 +131,33 @@ class wGAN():
 
     def buildGenerator(self):
 
-        generator = Sequential()
-        generator.add(Dense(256*12*12, input_dim=self.latent_dim, 
-            kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-        generator.add(LeakyReLU())
-        #generator.add(Dropout(0.2))
-        generator.add(Reshape((256, 12, 12)))
+        bn_axis = 1
 
-        generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(128, kernel_size=(6,6), padding='same', 
-            kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-        #generator.add(BatchNormalization(momentum=0.8))
+        generator = Sequential()
+        generator.add(Dense(1024, input_dim=self.latent_dim))
         generator.add(LeakyReLU())
-        generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(64, kernel_size=(5, 5), padding='same', 
-            kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-        #generator.add(BatchNormalization(momentum=0.8))
+        
+        generator.add(Dense(128*12*12, input_dim=self.latent_dim))
         generator.add(LeakyReLU())
-        generator.add(UpSampling2D(size=(2, 2)))
+        generator.add(Reshape((128, 12, 12)))
+
+        # 24 x 24
+        generator.add(Conv2DTranspose(128, (5, 5), strides=2, padding='same'))
+        generator.add(BatchNormalization(axis = bn_axis))
+        generator.add(LeakyReLU())
+
+        # 48 x 48
+        generator.add(Conv2DTranspose(64, (5, 5), strides=2, padding='same'))
+        generator.add(BatchNormalization(axis = bn_axis))
+        generator.add(LeakyReLU())
+
+        # 96 x 96
+        generator.add(Conv2DTranspose(64, (5, 5), strides=2, padding='same'))
+        generator.add(BatchNormalization(axis = bn_axis))
+        generator.add(LeakyReLU())
+
         generator.add(Conv2D(self.nchan, kernel_size=(5, 5), padding='same', activation='sigmoid'))
         generator.summary()
-
-        #noise   = Input(shape=(self.latent_dim,))
-        #img     = generator(noise)
 
         return generator
 
@@ -161,33 +165,41 @@ class wGAN():
 
         discriminator = Sequential()
 
-        discriminator.add(Conv2D(32, kernel_size=(6,6), strides=2, input_shape=self.image_dimensions, 
-            padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-        discriminator.add(LeakyReLU())
-        discriminator.add(Dropout(0.2))
-        discriminator.add(Conv2D(64, kernel_size=(6,6), strides=2, padding="same",
-            kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-        #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
-        discriminator.add(BatchNormalization(momentum=0.8))
-        discriminator.add(LeakyReLU())
-        discriminator.add(Dropout(0.2))
-        discriminator.add(Conv2D(128, kernel_size=(5,5), strides=2, padding="same",
-            kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-        discriminator.add(BatchNormalization(momentum=0.8))
+        discriminator.add(Convolution2D(64, kernel_size=(5,5), strides=2, input_shape=self.image_dimensions, 
+            padding="same"))
         discriminator.add(LeakyReLU())
         #discriminator.add(Dropout(0.2))
-        discriminator.add(Conv2D(256, kernel_size=(4,4), strides=2, padding="same",
-            kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-        discriminator.add(BatchNormalization(momentum=0.8))
+
+        discriminator.add(Convolution2D(64, kernel_size=(5,5), strides=2, padding="same",
+            kernel_initializer='he_normal'))
+        #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
+        #discriminator.add(BatchNormalization(momentum=0.8))
+        discriminator.add(LeakyReLU())
+        #discriminator.add(Dropout(0.2))
+
+        discriminator.add(Convolution2D(128, kernel_size=(5,5), strides=2, padding="same",
+            kernel_initializer='he_normal'))
+        #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
+        #discriminator.add(BatchNormalization(momentum=0.8))
+        discriminator.add(LeakyReLU())
+        #discriminator.add(Dropout(0.2))
+
+        discriminator.add(Convolution2D(128, kernel_size=(5,5), strides=2, padding="same",
+            kernel_initializer='he_normal'))
+        #discriminator.add(BatchNormalization(momentum=0.8))
         discriminator.add(LeakyReLU())
         #discriminator.add(Dropout(0.2))
         discriminator.add(Flatten())
+
+        discriminator.add(Dense(1024, kernel_size=(5,5), strides=2, padding="same",
+            kernel_initializer='he_normal'))
+        #discriminator.add(BatchNormalization(momentum=0.8))
+        discriminator.add(LeakyReLU())
+        #discriminator.add(Dropout(0.2))
+        
         discriminator.add(Dense(1, kernel_initializer='he_normal'))
 
         discriminator.summary()
-
-        #img = Input(shape=self.dimensions)
-        #validity = discriminator(img)
 
         return discriminator
 
@@ -201,8 +213,9 @@ class wGAN():
         negative_y  = - positive_y
         dummy_y     = np.zeros((self.batch_size, 1), dtype=np.float32)
 
-        batch_count = int(X_train.shape[0] / (self.batch_size * N_CRITIC_ITER))
-        minibatch_size = int(batch_count * N_CRITIC_ITER)
+        batch_count = 5
+        #batch_count = int(X_train.shape[0] / (self.batch_size * N_CRITIC_ITER))
+        #minibatch_size = int(batch_count * N_CRITIC_ITER)
 
         dLosses                     = []
         gLosses                     = []
