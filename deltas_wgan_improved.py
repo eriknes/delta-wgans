@@ -299,7 +299,7 @@ def load_file(fname):
  # Split into train and test data for GAN 
 def build_dataset( filename, nx, ny, n_test = 0):
 
-    X_train                     = load_file(filename)
+    X                     = load_file(filename)
 
     m = X.shape[0]
     print("Number of images in dataset: " + str(m) )
