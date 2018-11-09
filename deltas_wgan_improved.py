@@ -19,6 +19,7 @@ from functools import partial
 
 BATCH_SIZE              = 64
 GRADIENT_PENALTY_WEIGHT = 10
+N_CRITIC_ITER           = 5
 
 def wassersteinLoss(y_true, y_pred):
     """Wasserstein loss for a sample batch."""
@@ -200,8 +201,8 @@ class wGAN():
         negative_y  = -positive_y
         dummy_y     = np.zeros((self.batch_size, 1), dtype=np.float32)
 
-        batch_count = int(X_train.shape[0] / (self.batch_size * self.nCriticIter))
-        minibatch_size = int(self.batch_count * self.nCriticIter)
+        batch_count = int(X_train.shape[0] / (self.batch_size * N_CRITIC_ITER))
+        minibatch_size = int(self.batch_count * N_CRITIC_ITER)
 
         dLosses                     = []
         gLosses                     = []
@@ -214,7 +215,7 @@ class wGAN():
 
                 discriminator_minibatches = X_train[i * minibatch_size:(i + 1) * minibatches_size]
 
-                for j in range(self.nCriticIter):
+                for j in range(N_CRITIC_ITER):
 
                     # ---------------------
                     #  1 Train Discriminator
