@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import keras.backend as K
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout
 from keras.layers.merge import _Merge
-from keras.layers import BatchNormalization, Activation, ZeroPadding2D
+from keras.layers import BatchNormalization, Activation, ZeroPadding2D, Convolution2D, Conv2DTranspose
 from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.models import Sequential, Model
@@ -136,6 +136,8 @@ class wGAN():
         generator = Sequential()
         generator.add(Dense(1024, input_dim=self.latent_dim))
         generator.add(LeakyReLU())
+
+        #generator.Activation('relu')
         
         generator.add(Dense(128*12*12, input_dim=self.latent_dim))
         generator.add(LeakyReLU())
