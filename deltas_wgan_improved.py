@@ -146,26 +146,26 @@ class wGAN():
 
         # 24 x 24
         generator.add(Conv2DTranspose(128, (5, 5), strides=2, padding='same'))
-        generator.add(BatchNormalization(axis = bn_axis))
+        generator.add(BatchNormalization())
         generator.add(LeakyReLU())
         generator.add(Convolution2D(128, (5, 5), padding='same'))
-        generator.add(BatchNormalization(axis = bn_axis))
+        generator.add(BatchNormalization())
         generator.add(LeakyReLU())
 
         # 48 x 48
         generator.add(Conv2DTranspose(64, (5, 5), strides=2, padding='same'))
-        generator.add(BatchNormalization(axis = bn_axis))
+        generator.add(BatchNormalization())
         generator.add(LeakyReLU())
         generator.add(Convolution2D(64, (5, 5), padding='same'))
-        generator.add(BatchNormalization(axis = bn_axis))
+        generator.add(BatchNormalization())
         generator.add(LeakyReLU())
 
         # 96 x 96
         generator.add(Conv2DTranspose(64, (5, 5), strides=2, padding='same'))
-        generator.add(BatchNormalization(axis = bn_axis))
+        generator.add(BatchNormalization())
         generator.add(LeakyReLU())
         generator.add(Convolution2D(64, (5, 5), padding='same'))
-        generator.add(BatchNormalization(axis = bn_axis))
+        generator.add(BatchNormalization())
         generator.add(LeakyReLU())
 
         generator.add(Conv2D(self.nchan, kernel_size=(5, 5), padding='same', activation='sigmoid'))
