@@ -232,7 +232,7 @@ class wGAN():
                     #gen_images = self.generator.predict(noise)
                     d_loss = self.discriminator_model.train_on_batch([image_batch, noise],
                                                                  [positive_y, negative_y, dummy_y])
-                    dLosses.append(d_loss[0])
+                    dLosses.append(d_loss)
 
 
                 # ---------------------
@@ -240,10 +240,10 @@ class wGAN():
                 # ---------------------
                 noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim]).astype(np.float32)
                 g_loss = self.generator_model.train_on_batch(noise, positive_y)
-                gLosses.append(g_loss[0])
+                gLosses.append(g_loss)
                 
                 # Print the progress
-                print ("%d [D loss: %f] [G loss: %f]" % (epoch, 1.0 + d_loss[0], g_loss[0]))
+                print ("%d [D loss: %f] [G loss: %f]" % (epoch, 1.0 + d_loss, g_loss))
 
             
             # If at save interval => save generated image samples
