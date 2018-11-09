@@ -92,16 +92,16 @@ class wGAN():
 
         real_samples                        = Input(shape=X_train.shape[1:])
         generator_input_for_discriminator   = Input(shape=(self.latent_dim,))
-        generated_samples_for_discriminator = generator(generator_input_for_discriminator)
-        discriminator_output_from_generator = discriminator(generated_samples_for_discriminator)
-        discriminator_output_from_real_samples = discriminator(real_samples)
+        generated_samples_for_discriminator = self.generator(generator_input_for_discriminator)
+        discriminator_output_from_generator = self.discriminator(generated_samples_for_discriminator)
+        discriminator_output_from_real_samples = self.discriminator(real_samples)
 
         # We also need to generate weighted-averages of real and generated samples, to use for the gradient norm penalty.
         averaged_samples = RandomWeightedAverage()([real_samples, generated_samples_for_discriminator])
 
         # We then run these samples through the discriminator as well. Note that we never really use the discriminator
         # output for these samples - we're only running them to get the gradient norm for the gradient penalty loss.
-        averaged_samples_out = discriminator(averaged_samples)
+        averaged_samples_out = self.discriminator(averaged_samples)
 
         # The gradient penalty loss function requires the input averaged samples to get gradients. However,
         # Keras loss functions can only have two arguments, y_true and y_pred. We get around this by making a partial()
