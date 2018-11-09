@@ -213,7 +213,7 @@ class wGAN():
             print("Epoch: ", epoch)
             #print("Number of batches: ", int(X_train.shape[0] // BATCH_SIZE))
 
-            for _ in range(batch_count):
+            for i in range(batch_count):
 
                 #discriminator_minibatches = X_train[i * minibatch_size:(i + 1) * minibatch_size]
 
@@ -246,7 +246,8 @@ class wGAN():
                 dLosses.append(.5*(d_loss[0] + d_loss[1]))
                 
                 # Print the progress
-                print ("Epoch %d, batch %d: [D loss: %f] [G loss: %f]" % (epoch, i, .5*(d_loss[0] + d_loss[1]), g_loss))
+                if i % 10 == 0:
+                    print ("Epoch %d, batch %d: [D loss: %f] [G loss: %f]" % (epoch, i, .5*(d_loss[0] + d_loss[1]), g_loss))
 
             
             # If at save interval => save generated image samples
