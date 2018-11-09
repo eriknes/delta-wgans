@@ -157,7 +157,7 @@ class wGAN():
 
         discriminator = Sequential()
 
-        discriminator.add(Conv2D(32, kernel_size=(16,16), strides=2, input_shape=self.dimensions, 
+        discriminator.add(Conv2D(32, kernel_size=(16,16), strides=2, input_shape=self.image_dimensions, 
             padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         discriminator.add(LeakyReLU())
         discriminator.add(Dropout(0.2))
