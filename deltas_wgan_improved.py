@@ -65,7 +65,7 @@ class wGAN():
         #self.nCriticIter    = 5
         #self.clip_val       = 0.01
 
-        optim               = Adam(lr = 0.0002, beta_1 = 0.5, beta_2 = 0.9)
+        optim               = Adam(lr = 0.0001, beta_1 = 0.5, beta_2 = 0.9)
 
 
         # Build the generator
@@ -213,7 +213,7 @@ class wGAN():
             print("Epoch: ", epoch)
             #print("Number of batches: ", int(X_train.shape[0] // BATCH_SIZE))
 
-            for i in range(batch_count):
+            for i in range(batch_count-1):
 
                 discriminator_minibatches = X_train[i * minibatch_size:(i + 1) * minibatch_size]
 
@@ -245,7 +245,7 @@ class wGAN():
                 dLosses.append(.5*(d_loss[0] + d_loss[1]))
                 
                 # Print the progress
-                print ("%d [D loss: %f] [G loss: %f]" % (epoch, .5*(d_loss[0] + d_loss[1]), g_loss))
+                print ("Epoch %d, batch %d: [D loss: %f] [G loss: %f]" % (epoch, i, .5*(d_loss[0] + d_loss[1]), g_loss))
 
             
             # If at save interval => save generated image samples
