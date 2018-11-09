@@ -139,10 +139,10 @@ class wGAN():
 
         #generator.add(Activation("relu"))
         
-        generator.add(Dense(128*12*12, input_dim=self.latent_dim))
+        generator.add(Dense(64*12*12, input_dim=self.latent_dim))
         generator.add(BatchNormalization())
         generator.add(LeakyReLU())
-        generator.add(Reshape((128, 12, 12), input_shape=(128 * 12 * 12,)))
+        generator.add(Reshape((64, 12, 12), input_shape=(128 * 12 * 12,)))
 
         # 24 x 24
         generator.add(Conv2DTranspose(128, (5, 5), strides=2, padding='same'))
@@ -203,8 +203,7 @@ class wGAN():
         #discriminator.add(Dropout(0.2))
         discriminator.add(Flatten())
 
-        discriminator.add(Dense(1024, kernel_size=(5,5), strides=2, padding="same",
-            kernel_initializer='he_normal'))
+        discriminator.add(Dense(1024, kernel_initializer='he_normal'))
         #discriminator.add(BatchNormalization(momentum=0.8))
         discriminator.add(LeakyReLU())
         #discriminator.add(Dropout(0.2))
