@@ -239,7 +239,7 @@ class wGAN():
                 #  2 Train Generator
                 # ---------------------
                 noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim]).astype(np.float32)
-                g_loss = self.combined.train_on_batch(noise, positive_y)
+                g_loss = self.generator_model.train_on_batch(noise, positive_y)
                 gLosses.append(g_loss[0])
                 
                 # Print the progress
