@@ -202,7 +202,7 @@ class wGAN():
         dummy_y     = np.zeros((self.batch_size, 1), dtype=np.float32)
 
         batch_count = int(X_train.shape[0] / (self.batch_size * N_CRITIC_ITER))
-        minibatch_size = int(self.batch_count * N_CRITIC_ITER)
+        minibatch_size = int(batch_count * N_CRITIC_ITER)
 
         dLosses                     = []
         gLosses                     = []
@@ -211,7 +211,7 @@ class wGAN():
             # shuffle Xtrain
             np.random.shuffle(X_train)
 
-            for i in range(self.batch_count):
+            for i in range(batch_count):
 
                 discriminator_minibatches = X_train[i * minibatch_size:(i + 1) * minibatches_size]
 
