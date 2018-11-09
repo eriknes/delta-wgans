@@ -213,7 +213,7 @@ class wGAN():
 
             for i in range(batch_count):
 
-                discriminator_minibatches = X_train[i * minibatch_size:(i + 1) * minibatches_size]
+                discriminator_minibatches = X_train[i * minibatch_size:(i + 1) * minibatch_size]
 
                 for j in range(N_CRITIC_ITER):
 
