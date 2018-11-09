@@ -17,7 +17,7 @@ from keras.optimizers import RMSprop, Adam
 from keras import initializers
 from functools import partial
 
-BATCH_SIZE              = 64
+BATCH_SIZE              = 128
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
 
@@ -302,7 +302,7 @@ class wGAN():
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
                 self.plotGeneratedImages(epoch)
-                #self.plotSampleImages(epoch, image_batch)
+                self.plotSampleImages(epoch, image_batch)
                 self.saveModels(epoch)
                 self.plotLoss(epoch, dLosses, gLosses)
 
