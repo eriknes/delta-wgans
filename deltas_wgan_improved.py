@@ -17,6 +17,8 @@ from keras.optimizers import RMSprop, Adam
 from keras import initializers
 from functools import partial
 
+BATCH_SIZE = 64
+
 def wassersteinLoss(y_true, y_pred):
     """Wasserstein loss for a sample batch."""
     return K.mean(y_true * y_pred)
@@ -41,8 +43,8 @@ class RandomWeightedAverage(_Merge):
     between each pair of input points. Inheritance from _Merge """
 
     def _merge_function(self, inputs):
-        weights = K.random_uniform((inputs[0], 1, 1, 1))
-        return (weights * inputs[1]) + ((1 - weights) * inputs[2])
+        weights = K.random_uniform((BATCH_SIZE, 1, 1, 1))
+        return (weights * inputs[0]) + ((1 - weights) * inputs[1])
 
 class wGAN():
     def __init__(self, X_train):
@@ -55,7 +57,7 @@ class wGAN():
         self.nchan          = 1
         self.image_dimensions     = (self.nchan, self.nrows, self.ncols)
         
-        self.batch_size     = 64
+        self.batch_size     = BATCH_SIZE
         self.latent_dim     = 20
 
         #self.nCriticIter    = 5
@@ -97,7 +99,7 @@ class wGAN():
         discriminator_output_from_real_samples = self.discriminator(real_samples)
 
         # We also need to generate weighted-averages of real and generated samples, to use for the gradient norm penalty.
-        averaged_samples = RandomWeightedAverage()([self.batch_size, real_samples, generated_samples_for_discriminator])
+        averaged_samples = RandomWeightedAverage()([ real_samples, generated_samples_for_discriminator])
 
         # We then run these samples through the discriminator as well. Note that we never really use the discriminator
         # output for these samples - we're only running them to get the gradient norm for the gradient penalty loss.
@@ -337,4 +339,4 @@ if __name__ == '__main__':
     X_train                     = X_train[:, np.newaxis, :, :]
 
     wgan = wGAN(X_train)
-    wgan.trainGAN(X_train, epochs = 50, batch_size = 64, sample_interval = 5)
+    wgan.trainGAN(X_train, epochs = 50, batch_size = BATCH_SIZE, sample_interval = 5)
