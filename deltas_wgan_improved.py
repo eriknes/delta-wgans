@@ -228,26 +228,26 @@ class wGAN():
         discriminator.add(Convolution2D(64, kernel_size=(5,5), strides=2, padding="same",
             kernel_initializer='he_normal'))
         #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
-        #discriminator.add(BatchNormalization(momentum=0.8))
+        discriminator.add(BatchNormalization(momentum=0.8))
         discriminator.add(LeakyReLU())
         #discriminator.add(Dropout(0.2))
 
         discriminator.add(Convolution2D(128, kernel_size=(5,5), strides=2, padding="same",
             kernel_initializer='he_normal'))
         #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
-        #discriminator.add(BatchNormalization(momentum=0.8))
+        discriminator.add(BatchNormalization(momentum=0.8))
         discriminator.add(LeakyReLU())
         #discriminator.add(Dropout(0.2))
 
         discriminator.add(Convolution2D(128, kernel_size=(5,5), strides=2, padding="same",
             kernel_initializer='he_normal'))
-        #discriminator.add(BatchNormalization(momentum=0.8))
+        discriminator.add(BatchNormalization(momentum=0.8))
         discriminator.add(LeakyReLU())
         #discriminator.add(Dropout(0.2))
         discriminator.add(Flatten())
 
         discriminator.add(Dense(1024, kernel_initializer='he_normal'))
-        #discriminator.add(BatchNormalization(momentum=0.8))
+        discriminator.add(BatchNormalization(momentum=0.8))
         discriminator.add(LeakyReLU())
         #discriminator.add(Dropout(0.2))
         
