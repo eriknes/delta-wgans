@@ -144,12 +144,12 @@ class wGAN():
         #generator.add(BatchNormalization(momentum=0.8))
         generator.add(LeakyReLU())
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(64, kernel_size=(10, 10), padding='same', 
+        generator.add(Conv2D(64, kernel_size=(5, 5), padding='same', 
             kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         #generator.add(BatchNormalization(momentum=0.8))
         generator.add(LeakyReLU())
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(self.nchan, kernel_size=(16, 16), padding='same', activation='sigmoid'))
+        generator.add(Conv2D(self.nchan, kernel_size=(5, 5), padding='same', activation='sigmoid'))
         generator.summary()
 
         #noise   = Input(shape=(self.latent_dim,))
@@ -161,17 +161,17 @@ class wGAN():
 
         discriminator = Sequential()
 
-        discriminator.add(Conv2D(32, kernel_size=(16,16), strides=2, input_shape=self.image_dimensions, 
+        discriminator.add(Conv2D(32, kernel_size=(6,6), strides=2, input_shape=self.image_dimensions, 
             padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         discriminator.add(LeakyReLU())
         discriminator.add(Dropout(0.2))
-        discriminator.add(Conv2D(64, kernel_size=(10,10), strides=2, padding="same",
+        discriminator.add(Conv2D(64, kernel_size=(6,6), strides=2, padding="same",
             kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
         discriminator.add(BatchNormalization(momentum=0.8))
         discriminator.add(LeakyReLU())
         discriminator.add(Dropout(0.2))
-        discriminator.add(Conv2D(128, kernel_size=(6,6), strides=2, padding="same",
+        discriminator.add(Conv2D(128, kernel_size=(5,5), strides=2, padding="same",
             kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         discriminator.add(BatchNormalization(momentum=0.8))
         discriminator.add(LeakyReLU())
@@ -191,14 +191,14 @@ class wGAN():
 
         return discriminator
 
-    def trainGAN(self, X_train, epochs=1, batch_size=128, sample_interval=2):
+    def trainGAN(self, X_train, epochs = 10, batch_size = 64, sample_interval = 1):
 
         
         # We make three label vectors for training. positive_y is the label vector for real samples, with value 1.
         # negative_y is the label vector for generated samples, with value -1. The dummy_y vector is passed to the
         # gradient_penalty loss function and is not used.
         positive_y  = np.ones((self.batch_size, 1), dtype=np.float32)
-        negative_y  = -positive_y
+        negative_y  = - positive_y
         dummy_y     = np.zeros((self.batch_size, 1), dtype=np.float32)
 
         batch_count = int(X_train.shape[0] / (self.batch_size * N_CRITIC_ITER))
@@ -238,14 +238,14 @@ class wGAN():
                 # ---------------------
                 #  2 Train Generator
                 # ---------------------
-
+                noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim]).astype(np.float32)
                 g_loss = self.combined.train_on_batch(noise, positive_y)
                 gLosses.append(g_loss[0])
-             
+                
+                # Print the progress
+                print ("%d [D loss: %f] [G loss: %f]" % (epoch, 1.0 + d_loss[0], g_loss[0]))
 
-            # Print the progress
-            print ("%d [D loss: %f] [G loss: %f]" % (epoch, 1.0 + d_loss[0], g_loss[0]))
-
+            
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
                 self.plotGeneratedImages(epoch)
@@ -341,4 +341,4 @@ if __name__ == '__main__':
     X_train                     = X_train[:, np.newaxis, :, :]
 
     wgan = wGAN(X_train)
-    wgan.trainGAN(X_train, epochs = 50, batch_size = BATCH_SIZE, sample_interval = 5)
+    wgan.trainGAN(X_train, epochs = 50, batch_size = BATCH_SIZE, sample_interval = 1)
