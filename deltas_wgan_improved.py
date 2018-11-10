@@ -144,12 +144,12 @@ class wGAN():
         #generator.add(LeakyReLU(.2))
         generator.add(Activation("relu"))
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(256, kernel_size=(9, 9), padding='same'))
+        generator.add(Conv2D(512, kernel_size=(4, 4), padding='same'))
         #generator.add(BatchNormalization(momentum=0.8))
         #generator.add(LeakyReLU(.2))
         generator.add(Activation("relu"))
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(self.nchan, kernel_size=(12, 12), padding='same', activation='sigmoid'))
+        generator.add(Conv2D(self.nchan, kernel_size=(4, 4), padding='same', activation='sigmoid'))
         generator.summary()
 
         return generator
@@ -213,13 +213,13 @@ class wGAN():
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Convolution2D(256, kernel_size=(5,5), strides=(2,2), padding="same"))
+        discriminator.add(Convolution2D(256, kernel_size=(4,4), strides=(2,2), padding="same"))
         #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
         #discriminator.add(BatchNormalization(momentum=0.7))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Convolution2D(512, kernel_size=(5,5), strides=(2,2), padding="same"))
+        discriminator.add(Convolution2D(512, kernel_size=(4,4), strides=(2,2), padding="same"))
         #discriminator.add(BatchNormalization(momentum=0.7))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.2))
