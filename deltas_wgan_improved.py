@@ -65,7 +65,7 @@ class wGAN():
         #self.nCriticIter    = 5
         #self.clip_val       = 0.01
 
-        optim               = Adam(lr = 0.0001, beta_1 = 0.5)
+        optim               = Adam(lr = 0.0002, beta_1 = 0.5)
 
 
         # Build the generator
@@ -203,28 +203,25 @@ class wGAN():
         discriminator = Sequential()
 
         discriminator.add(Convolution2D(64, kernel_size=(6,6), strides=(2,2), input_shape=self.image_dimensions, 
-            padding="same"))
-        discriminator.add(LeakyReLU())
+            padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+        discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Convolution2D(128, kernel_size=(5,5), strides=(2,2), padding="same",
-            kernel_initializer='he_normal'))
+        discriminator.add(Convolution2D(128, kernel_size=(5,5), strides=(2,2), padding="same"))
         #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
         #discriminator.add(BatchNormalization(momentum=0.7))
-        discriminator.add(LeakyReLU())
+        discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Convolution2D(128, kernel_size=(5,5), strides=(2,2), padding="same",
-            kernel_initializer='he_normal'))
+        discriminator.add(Convolution2D(256, kernel_size=(5,5), strides=(2,2), padding="same"))
         #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
         #discriminator.add(BatchNormalization(momentum=0.7))
-        discriminator.add(LeakyReLU())
+        discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Convolution2D(256, kernel_size=(5,5), strides=(2,2), padding="same",
-            kernel_initializer='he_normal'))
+        discriminator.add(Convolution2D(512, kernel_size=(5,5), strides=(2,2), padding="same"))
         #discriminator.add(BatchNormalization(momentum=0.7))
-        discriminator.add(LeakyReLU())
+        discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.2))
         discriminator.add(Flatten())
 
@@ -233,7 +230,7 @@ class wGAN():
         #discriminator.add(LeakyReLU())
         #discriminator.add(Dropout(0.2))
         
-        discriminator.add(Dense(1, kernel_initializer='he_normal'))
+        discriminator.add(Dense(1))
 
         discriminator.summary()
 
@@ -389,7 +386,7 @@ def build_dataset( filename, nx, ny, n_test = 0):
 
 if __name__ == '__main__':
     # Load dataset
-    filename                    = "data/train/braidedData2.csv"
+    filename                    = "data/train/tidalData.csv"
     (X_train, y_train) = build_dataset(filename, 96, 96, 0)
     X_train                     = X_train[:, np.newaxis, :, :]
 
