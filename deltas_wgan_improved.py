@@ -233,7 +233,7 @@ class wGAN():
         #discriminator.add(LeakyReLU())
         #discriminator.add(Dropout(0.2))
         
-        discriminator.add(Dense(1, activation = 'tanh', kernel_initializer='he_normal'))
+        discriminator.add(Dense(1, kernel_initializer='he_normal'))
 
         discriminator.summary()
 
