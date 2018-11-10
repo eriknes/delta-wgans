@@ -17,7 +17,7 @@ from keras.optimizers import RMSprop, Adam
 from keras import initializers
 from functools import partial
 
-BATCH_SIZE              = 128
+BATCH_SIZE              = 64
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
 
@@ -131,20 +131,20 @@ class wGAN():
     def buildGenerator(self):
 
         generator = Sequential()
-        generator.add(Dense(256*12*12, input_dim=self.latent_dim, 
+        generator.add(Dense(64*12*12, input_dim=self.latent_dim, 
             kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         #generator.add(LeakyReLU(.2))
         generator.add(Activation("relu"))
         #generator.add(Dropout(0.2))
-        generator.add(Reshape((256, 12, 12)))
+        generator.add(Reshape((64, 12, 12)))
 
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(256, kernel_size=(5,5), padding='same'))
+        generator.add(Conv2D(128, kernel_size=(5,5), padding='same'))
         #generator.add(BatchNormalization(momentum=0.8))
         #generator.add(LeakyReLU(.2))
         generator.add(Activation("relu"))
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(512, kernel_size=(4, 4), padding='same'))
+        generator.add(Conv2D(256, kernel_size=(4, 4), padding='same'))
         #generator.add(BatchNormalization(momentum=0.8))
         #generator.add(LeakyReLU(.2))
         generator.add(Activation("relu"))
@@ -207,6 +207,13 @@ class wGAN():
         discriminator.add(LeakyReLU())
         discriminator.add(Dropout(0.3))
 
+        discriminator.add(Convolution2D(64, kernel_size=(4,4), strides=(2,2), padding="same",
+            kernel_initializer='he_normal'))
+        #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
+        #discriminator.add(BatchNormalization(momentum=0.7))
+        discriminator.add(LeakyReLU())
+        discriminator.add(Dropout(0.3))
+
         discriminator.add(Convolution2D(128, kernel_size=(4,4), strides=(2,2), padding="same",
             kernel_initializer='he_normal'))
         #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
@@ -214,21 +221,14 @@ class wGAN():
         discriminator.add(LeakyReLU())
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Convolution2D(256, kernel_size=(4,4), strides=(2,2), padding="same",
-            kernel_initializer='he_normal'))
-        #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
-        #discriminator.add(BatchNormalization(momentum=0.7))
-        discriminator.add(LeakyReLU())
-        discriminator.add(Dropout(0.3))
-
-        discriminator.add(Convolution2D(256, kernel_size=(4,4), strides=(2,2), padding="same",
+        discriminator.add(Convolution2D(128, kernel_size=(4,4), strides=(2,2), padding="same",
             kernel_initializer='he_normal'))
         #discriminator.add(BatchNormalization(momentum=0.7))
         discriminator.add(LeakyReLU())
         discriminator.add(Dropout(0.2))
         discriminator.add(Flatten())
 
-        discriminator.add(Dense(1024, kernel_initializer='he_normal'))
+        discriminator.add(Dense(256, kernel_initializer='he_normal'))
         #discriminator.add(BatchNormalization(momentum=0.7))
         discriminator.add(LeakyReLU())
         #discriminator.add(Dropout(0.2))
