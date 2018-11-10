@@ -131,15 +131,15 @@ class wGAN():
     def buildGenerator(self):
 
         generator = Sequential()
-        generator.add(Dense(64*12*12, input_dim=self.latent_dim, 
+        generator.add(Dense(128*12*12, input_dim=self.latent_dim, 
             kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         #generator.add(LeakyReLU(.2))
         generator.add(Activation("relu"))
         #generator.add(Dropout(0.2))
-        generator.add(Reshape((64, 12, 12)))
+        generator.add(Reshape((128, 12, 12)))
 
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(128, kernel_size=(6,6), padding='same'))
+        generator.add(Conv2D(256, kernel_size=(6,6), padding='same'))
         #generator.add(BatchNormalization(momentum=0.8))
         #generator.add(LeakyReLU(.2))
         generator.add(Activation("relu"))
@@ -159,7 +159,7 @@ class wGAN():
         bn_axis = 1
 
         generator = Sequential()
-        generator.add(Dense(1024, input_dim=self.latent_dim))
+        generator.add(Dense(2048, input_dim=self.latent_dim))
         generator.add(LeakyReLU())
 
         #generator.add(Activation("relu"))
@@ -246,7 +246,7 @@ class wGAN():
         negative_y  = - positive_y
         dummy_y     = np.zeros((self.batch_size, 1), dtype=np.float32)
 
-        batch_count = 10
+        batch_count = 20
         #batch_count = int(X_train.shape[0] / (self.batch_size * N_CRITIC_ITER))
         #minibatch_size = int(batch_count * N_CRITIC_ITER)
 
