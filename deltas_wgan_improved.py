@@ -394,4 +394,4 @@ if __name__ == '__main__':
     X_train                     = X_train[:, np.newaxis, :, :]
 
     wgan = wGAN(X_train)
-    wgan.trainGAN(X_train, epochs = 50, batch_size = BATCH_SIZE, sample_interval = 1)
+    wgan.trainGAN(X_train, epochs = 500, batch_size = BATCH_SIZE, sample_interval = 5)
