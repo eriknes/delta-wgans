@@ -291,11 +291,9 @@ class wGAN():
                 gLosses.append(g_loss)
                 dLosses.append(.5*(d_loss[0] + d_loss[1]))
                 
-                # Print the progress
-                if i % 10 == 0:
-                    print ("Epoch %d, [D loss: %f] [G loss: %f]" % (epoch, .5*(d_loss[0] + d_loss[1]), g_loss))
-
-            
+            # Print the progress
+            print ("Epoch %d, [D loss: %f] [G loss: %f]" % (epoch, .5*(d_loss[0] + d_loss[1]), g_loss))
+                    
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
                 self.plotGeneratedImages(epoch)
@@ -386,7 +384,7 @@ def build_dataset( filename, nx, ny, n_test = 0):
 
 if __name__ == '__main__':
     # Load dataset
-    filename                    = "data/train/tidalData.csv"
+    filename                    = "data/train/braidedData2_discrete.csv"
     (X_train, y_train) = build_dataset(filename, 96, 96, 0)
     X_train                     = X_train[:, np.newaxis, :, :]
 
