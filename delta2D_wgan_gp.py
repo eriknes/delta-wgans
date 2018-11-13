@@ -53,6 +53,7 @@ class wGAN():
         # Deterministic output.
         #np.random.seed(1)
 
+        # Theano uses ordering channels, rows, cols
         K.set_image_dim_ordering('th')
         self.nrows          = 96
         self.ncols          = 96
@@ -60,12 +61,12 @@ class wGAN():
         self.image_dimensions     = (self.nchan, self.nrows, self.ncols)
         
         self.batch_size     = BATCH_SIZE
-        self.latent_dim     = 3
+        self.latent_dim     = 2
 
         #self.nCriticIter    = 5
         #self.clip_val       = 0.01
 
-        optim               = Adam(lr = 0.0001, beta_1 = 0.5)
+        optim               = Adam(lr = 0.0001, beta_1 = 0, beta_2 = 0.9)
 
 
         # Build the generator
