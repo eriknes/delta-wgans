@@ -61,11 +61,9 @@ class wGAN():
         self.image_dimensions     = (self.nchan, self.nrows, self.ncols)
         
         self.batch_size     = BATCH_SIZE
-        self.latent_dim     = 2
+        self.latent_dim     = 5
 
-        #self.nCriticIter    = 5
-        #self.clip_val       = 0.01
-
+        # Adam gradient descent
         optim               = Adam(lr = 0.0001, beta_1 = 0, beta_2 = 0.9)
 
 
@@ -160,39 +158,38 @@ class wGAN():
         bn_axis = 1
 
         generator = Sequential()
-        generator.add(Dense(2048, input_dim=self.latent_dim))
-        generator.add(LeakyReLU())
-
+        generator.add(Dense(1024, input_dim=self.latent_dim))
+        generator.add(LeakyReLU(.2))
         #generator.add(Activation("relu"))
         
-        generator.add(Dense(64*12*12, input_dim=self.latent_dim))
-        #generator.add(BatchNormalization())
-        generator.add(LeakyReLU())
-        generator.add(Reshape((64, 12, 12), input_shape=(128 * 12 * 12,)))
+        generator.add(Dense(64*12*12))
+        #generator.add(Activation("relu"))
+        generator.add(LeakyReLU(.2))
+        generator.add(Reshape((64, 12, 12)))
 
         # 24 x 24
-        generator.add(Conv2DTranspose(64, (5, 5), strides=2, padding='same'))
+        generator.add(Conv2DTranspose(64, (5, 5), strides=(2,2), padding='same'))
         #generator.add(BatchNormalization())
-        generator.add(LeakyReLU())
+        #generator.add(LeakyReLU())
         generator.add(Convolution2D(64, (5, 5), padding='same'))
         #generator.add(BatchNormalization())
-        generator.add(LeakyReLU())
+        generator.add(LeakyReLU(.2))
 
         # 48 x 48
-        generator.add(Conv2DTranspose(128, (5, 5), strides=2, padding='same'))
+        generator.add(Conv2DTranspose(128, (5, 5), strides=(2,2), padding='same'))
         #generator.add(BatchNormalization())
-        generator.add(LeakyReLU())
+        #generator.add(LeakyReLU())
         generator.add(Convolution2D(128, (5, 5), padding='same'))
         #generator.add(BatchNormalization())
-        generator.add(LeakyReLU())
+        generator.add(LeakyReLU(.2))
 
         # 96 x 96
-        generator.add(Conv2DTranspose(256, (5, 5), strides=2, padding='same'))
+        generator.add(Conv2DTranspose(256, (5, 5), strides=(2,2), padding='same'))
         #generator.add(BatchNormalization())
-        generator.add(LeakyReLU())
+        #generator.add(LeakyReLU())
         generator.add(Convolution2D(256, (5, 5), padding='same'))
         #generator.add(BatchNormalization())
-        generator.add(LeakyReLU())
+        generator.add(LeakyReLU(.2))
 
         generator.add(Conv2D(self.nchan, kernel_size=(5, 5), padding='same', activation='sigmoid'))
         generator.summary()
@@ -223,7 +220,7 @@ class wGAN():
         discriminator.add(Convolution2D(512, kernel_size=(5,5), strides=(2,2), padding="same"))
         #discriminator.add(BatchNormalization(momentum=0.7))
         discriminator.add(LeakyReLU(.2))
-        discriminator.add(Dropout(0.2))
+        discriminator.add(Dropout(0.3))
         discriminator.add(Flatten())
 
         #discriminator.add(Dense(256, kernel_initializer='he_normal'))
