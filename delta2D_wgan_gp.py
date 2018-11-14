@@ -143,58 +143,16 @@ class wGAN():
         #generator.add(LeakyReLU(.2))
         generator.add(Activation("relu"))
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(256, kernel_size=(9, 9), padding='same'))
+        generator.add(Conv2D(256, kernel_size=(5, 5), padding='same'))
         #generator.add(BatchNormalization(momentum=0.8))
         #generator.add(LeakyReLU(.2))
         generator.add(Activation("relu"))
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(self.nchan, kernel_size=(12, 12), padding='same', activation='sigmoid'))
-        generator.summary()
-
-        return generator
-
-    def buildGeneratorConv(self):
-
-        bn_axis = 1
-
-        generator = Sequential()
-        generator.add(Dense(1024, input_dim=self.latent_dim))
-        generator.add(LeakyReLU(.2))
-        #generator.add(Activation("relu"))
-        
-        generator.add(Dense(64*12*12))
-        #generator.add(Activation("relu"))
-        generator.add(LeakyReLU(.2))
-        generator.add(Reshape((64, 12, 12)))
-
-        # 24 x 24
-        generator.add(Conv2DTranspose(64, (5, 5), strides=(2,2), padding='same'))
-        #generator.add(BatchNormalization())
-        #generator.add(LeakyReLU())
-        generator.add(Convolution2D(64, (5, 5), padding='same'))
-        #generator.add(BatchNormalization())
-        generator.add(LeakyReLU(.2))
-
-        # 48 x 48
-        generator.add(Conv2DTranspose(128, (5, 5), strides=(2,2), padding='same'))
-        #generator.add(BatchNormalization())
-        #generator.add(LeakyReLU())
-        generator.add(Convolution2D(128, (5, 5), padding='same'))
-        #generator.add(BatchNormalization())
-        generator.add(LeakyReLU(.2))
-
-        # 96 x 96
-        generator.add(Conv2DTranspose(256, (5, 5), strides=(2,2), padding='same'))
-        #generator.add(BatchNormalization())
-        #generator.add(LeakyReLU())
-        generator.add(Convolution2D(256, (5, 5), padding='same'))
-        #generator.add(BatchNormalization())
-        generator.add(LeakyReLU(.2))
-
         generator.add(Conv2D(self.nchan, kernel_size=(5, 5), padding='same', activation='sigmoid'))
         generator.summary()
 
         return generator
+
 
     def buildDiscriminator(self):
 
@@ -336,7 +294,7 @@ class wGAN():
 
     # Save the generator and discriminator networks (and weights) for later use
     def saveModels(self, epoch):
-        self.generator.save('models/wgan_generator_epoch_%d.h5' % epoch)
+        self.generator_model.save('models/wgan_gen_ep_%d.h5' % epoch)
         #self.discriminator.save('models/wgan_discriminator_epoch_%d.h5' % epoch)
 
 # Read csv file
@@ -382,7 +340,7 @@ def build_dataset( filename, nx, ny, n_test = 0):
 
 if __name__ == '__main__':
     # Load dataset
-    filename                    = "data/train/braidedData2_discrete.csv"
+    filename                    = "data/train/braidedData2.csv"
     (X_train, y_train) = build_dataset(filename, 96, 96, 0)
     X_train                     = X_train[:, np.newaxis, :, :]
 
