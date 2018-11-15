@@ -294,7 +294,7 @@ class wGAN():
 
     # Save the generator and discriminator networks (and weights) for later use
     def saveModels(self, epoch):
-        self.generator_model.save('models/wgan_gen_ep_%d.h5' % epoch)
+        self.generator.save('models/wgan_gen_ep_%d.h5' % epoch)
         #self.discriminator.save('models/wgan_discriminator_epoch_%d.h5' % epoch)
 
 # Read csv file
@@ -345,4 +345,4 @@ if __name__ == '__main__':
     X_train                     = X_train[:, np.newaxis, :, :]
 
     wgan = wGAN(X_train)
-    wgan.trainGAN(X_train, epochs = 500, batch_size = BATCH_SIZE, sample_interval = 5)
+    wgan.trainGAN(X_train, epochs = 500, batch_size = BATCH_SIZE, sample_interval = 10)
