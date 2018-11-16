@@ -16,10 +16,15 @@ from keras.models import Sequential, Model
 from keras.optimizers import RMSprop, Adam
 from keras import initializers
 from functools import partial
+import loadData3D as d3d
 
+LATENT_VEC_SIZE         = 20
 BATCH_SIZE              = 64
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
+ADAM_LR                 = .0001
+ADAM_BETA_1             = .5
+ADAM_BETA_2             = .9
 
 def wassersteinLoss(y_true, y_pred):
     """Wasserstein loss for a sample batch."""
@@ -50,24 +55,23 @@ class RandomWeightedAverage(_Merge):
 
 class wGAN():
     def __init__(self, X_train):
-        # Deterministic output.
+        
+        # Uncomment for deterministic output.
         #np.random.seed(1)
 
-        # Theano uses ordering channels, rows, cols
+        # Theano uses ordering nchannels, nx, ny, nz
         K.set_image_dim_ordering('th')
-        self.nrows          = 96
-        self.ncols          = 96
-        self.nlayers        = 16
-        self.nchan          = 1
-        self.image_dimensions     = (self.nchan, self.nrows, self.ncols, self.nlayers)
+        (nchan,nx,ny,nz)        = X_train[0].shape
+        self.nrows              = nx
+        self.ncols              = ny
+        self.nlayers            = nz
+        self.nchan              = nchan
+        self.image_dimensions   = (self.nchan, self.nrows, self.ncols, self.nlayers)
         
-        self.batch_size     = BATCH_SIZE
-        self.latent_dim     = 10
+        self.batch_size         = BATCH_SIZE
+        self.latent_dim         = LATENT_VEC_SIZE
 
-        #self.nCriticIter    = 5
-        #self.clip_val       = 0.01
-
-        optim               = Adam(lr = 0.0001, beta_1 = 0.5, beta_2 = 0.9)
+        optim               = Adam(lr = ADAM_LR, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2)
 
 
         # Build the generator
@@ -81,39 +85,38 @@ class wGAN():
 
         # The generator takes noise as input and generated imgs
 
-        generator_input     = Input(shape=(self.latent_dim,))
-        generator_layers    = self.generator(generator_input)
-        discriminator_layers= self.discriminator(generator_layers)
-        self.generator_model     = Model(inputs=[generator_input], outputs=[discriminator_layers])
+        generator_input             = Input(shape=(self.latent_dim,))
+        generator_layers            = self.generator(generator_input)
+        discriminator_layers        = self.discriminator(generator_layers)
+        self.generator_model        = Model(inputs=[generator_input], outputs=[discriminator_layers])
         self.generator_model.compile(optimizer = optim, loss = wassersteinLoss)
 
         # After generator model compilation, we make the discriminator layers trainable.
         for layer in self.discriminator.layers:
-            layer.trainable = True
+            layer.trainable                 = True
         for layer in self.generator.layers:
-            layer.trainable = False
+            layer.trainable                 = False
         self.discriminator.trainable    = True
         self.generator.trainable        = False
 
 
-        real_samples                        = Input(shape=X_train.shape[1:])
-        generator_input_for_discriminator   = Input(shape=(self.latent_dim,))
-        generated_samples_for_discriminator = self.generator(generator_input_for_discriminator)
-        discriminator_output_from_generator = self.discriminator(generated_samples_for_discriminator)
-        discriminator_output_from_real_samples = self.discriminator(real_samples)
+        real_samples                            = Input(shape=X_train.shape[1:])
+        generator_input_for_discriminator       = Input(shape=(self.latent_dim,))
+        generated_samples_for_discriminator     = self.generator(generator_input_for_discriminator)
+        discriminator_output_from_generator     = self.discriminator(generated_samples_for_discriminator)
+        discriminator_output_from_real_samples  = self.discriminator(real_samples)
 
         # We also need to generate weighted-averages of real and generated samples, to use for the gradient norm penalty.
-        averaged_samples = RandomWeightedAverage()([ real_samples, generated_samples_for_discriminator])
+        averaged_samples        = RandomWeightedAverage()([ real_samples, generated_samples_for_discriminator])
 
         # We then run these samples through the discriminator as well. Note that we never really use the discriminator
         # output for these samples - we're only running them to get the gradient norm for the gradient penalty loss.
-        averaged_samples_out = self.discriminator(averaged_samples)
+        averaged_samples_out    = self.discriminator(averaged_samples)
 
         # The gradient penalty loss function requires the input averaged samples to get gradients. However,
         # Keras loss functions can only have two arguments, y_true and y_pred. We get around this by making a partial()
         # of the function with the averaged samples here.
-        partial_gp_loss = partial(gradientPenaltyLoss,
-                                  averaged_samples=averaged_samples,
+        partial_gp_loss         = partial(gradientPenaltyLoss, averaged_samples=averaged_samples,
                                   gradient_penalty_weight=GRADIENT_PENALTY_WEIGHT)
         partial_gp_loss.__name__ = 'gradient_penalty'  # Functions need names or Keras will throw an error
 
@@ -150,7 +153,6 @@ class wGAN():
 
         return generator
 
-
     def buildDiscriminator(self):
 
         discriminator = Sequential()
@@ -174,8 +176,7 @@ class wGAN():
 
         return discriminator
 
-    def trainGAN(self, X_train, epochs = 10, batch_size = 64, sample_interval = 1):
-
+    def trainGAN(self, X_train, n_epochs = 10, batch_size = 64, sample_interval = 1):
         
         # We make three label vectors for training. positive_y is the label vector for real samples, with value 1.
         # negative_y is the label vector for generated samples, with value -1. The dummy_y vector is passed to the
@@ -191,13 +192,14 @@ class wGAN():
         dLosses                     = []
         gLosses                     = []
 
-        for epoch in range(epochs + 1):
+        for epoch in range(n_epochs + 1):
+            
             # shuffle Xtrain
-            np.random.shuffle(X_train)
+            #np.random.shuffle(X_train)
             #print("Epoch: ", epoch)
             #print("Number of batches: ", int(X_train.shape[0] // BATCH_SIZE))
 
-            for i in range(batch_count):
+            for _ in range(batch_count):
 
                 #discriminator_minibatches = X_train[i * minibatch_size:(i + 1) * minibatch_size]
 
@@ -210,13 +212,11 @@ class wGAN():
                     # Select a random batch of images
                     idx = np.random.randint(0, X_train.shape[0], batch_size)
                     image_batch = X_train[idx]
-                    #image_batch = discriminator_minibatches[j*batch_size:(j+1)*batch_size]
 
                     # Sample noise as generator input
                     noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim]).astype(np.float32)
 
-                    # Generate a batch of new images
-                    #gen_images = self.generator.predict(noise)
+                    # Train discriminator model
                     d_loss = self.discriminator_model.train_on_batch([image_batch, noise],
                                                                  [positive_y, negative_y, dummy_y])
 
@@ -234,12 +234,13 @@ class wGAN():
                     
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
-                self.plotGeneratedImages(epoch)
-                self.plotSampleImages(epoch, image_batch)
+                self.saveGenImages(epoch)
+                #self.plotSampleImages(epoch, image_batch)
                 self.saveModels(epoch)
-                self.plotLoss(epoch, dLosses, gLosses)
+                #self.plotLoss(epoch, dLosses, gLosses)
 
-    def plotGeneratedImages(self, epoch, examples=25, dim=(5, 5), figsize=(10, 10)):
+    def saveGenImages(self, epoch, examples=25, dim=(5, 5), figsize=(10, 10)):
+        
         noise = np.random.normal(0, 1, size=[examples, self.latent_dim])
         generated_images = self.generator.predict(noise)
 
@@ -252,79 +253,29 @@ class wGAN():
         plt.savefig('images/wgan_image_epoch_%d.png' % epoch)
         plt.close()
 
-    def plotSampleImages(self, epoch, images, examples=25, dim=(5, 5), figsize=(10, 10)):
-
-        plt.figure(figsize=figsize)
-        for i in range(examples):
-            plt.subplot(dim[0], dim[1], i+1)
-            plt.imshow(images[i, 0], interpolation='nearest', cmap='gray_r')
-            plt.axis('off')
-        plt.tight_layout()
-        plt.savefig('images/training_samples_epoch_%d.png' % epoch)
-        plt.close()
-
-    # Plot the loss from each batch
-    def plotLoss(self, epoch, dLosses, gLosses):
-        plt.figure(figsize=(10, 8))
-        plt.plot(dLosses, label='Discriminitive loss')
-        plt.plot(gLosses, label='Generative loss')
-        plt.xlabel('Epoch')
-        plt.ylabel('Loss')
-        plt.legend()
-        plt.savefig('images/wgan_loss_epoch_%d.png' % epoch)
-        plt.close()
 
     # Save the generator and discriminator networks (and weights) for later use
     def saveModels(self, epoch):
-        self.generator.save('models/wgan_generator_epoch_%d.h5' % epoch)
+        self.generator_model.save('models/wgan_gen_ep_%d.h5' % epoch)
         #self.discriminator.save('models/wgan_discriminator_epoch_%d.h5' % epoch)
 
-# Read csv file
-def load_file(fname):
-     X = pd.read_csv(fname)
-     X = X.values
-     X = X.astype('uint8')
-     return X
-
- # Split into train and test data for GAN 
-def build_dataset( filename, nx, ny, n_test = 0):
-
-    X                     = load_file(filename)
-
-    m = X.shape[0]
-    print("Number of images in dataset: " + str(m) )
-
-    X = X.T
-    Y = np.zeros((m,))
-
-    # Random permutation of samples
-    p = np.random.permutation(m)
-    X = X[:,p]
-    Y = Y[p]
-
-    # Reshape X and crop to 96x96 pixels
-    X_new = np.zeros((m,nx,ny))
-
-    for i in range(m):
-        Xtemp = np.reshape(X[:,i],(101,101))
-        X_new[i,:,:] = Xtemp[2:98,2:98]
-
-    X_train = X_new[0:m-n_test,:,:]
-    Y_train = Y[0:m-n_test]
-
-    #X_test  = X_new[m-n_test:m,:,:]
-    #Y_test  = Y[m-n_test:m]
-
-    print("X_train shape: " + str(X_train.shape))
-    print("Y_train shape: " + str(Y_train.shape))
-
-    return X_train, Y_train
 
 if __name__ == '__main__':
     # Load dataset
-    filename                    = "data/train/braidedData2_discrete.csv"
-    (X_train, y_train) = build_dataset(filename, 96, 96, 0)
-    X_train                     = X_train[:, np.newaxis, :, :]
+    filename                    = "data/train/braidedData3DSmall.csv"
+    datatype                    = 'uint8'
+    nx                          = 96
+    ny                          = 96
+    nz                          = 16
+    nchan                       = 1
 
-    wgan = wGAN(X_train)
-    wgan.trainGAN(X_train, epochs = 500, batch_size = BATCH_SIZE, sample_interval = 5)
+    X_train                     = d3d.buildDataset_3D(filename, datatype, nx, ny, nz)
+    
+    # Insert channel axis 
+    X_train                     = X_train[:, np.newaxis, :, :, :]
+
+    # Initialize a class instance
+    wgan                        = wGAN(X_train)
+    # Start training
+    wgan.trainGAN(X_train, n_epochs = 500, batch_size = BATCH_SIZE, sample_interval = 5)
+
