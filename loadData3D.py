@@ -22,11 +22,13 @@ def buildDataset_3D(X, type, nx, ny, nz):
   X         = X[:,p]
   
   # Reshape X and crop to 96x96 pixels
-  X_new = np.zeros((m,nx,ny,nz))
+  X_train = np.zeros((m,nx,ny,nz))
   for i in range(m):
-    X_new[i,:,:,:] = np.reshape(X[:,i],(nx,ny,nz))
+
+    Xtemp = np.reshape(X[:,i],(nz,nx,ny))
+    X_train[i,:,:,:] = np.moveaxis(Xtemp, 0, -1)
   
-  X_train = X_new[0:m-n_test,:,:]
+  
 
   print("X_train shape: " + str(X_train.shape))
   
