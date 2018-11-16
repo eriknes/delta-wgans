@@ -9,17 +9,17 @@ import matplotlib.pyplot as plt
 import keras.backend as K
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout
 from keras.layers.merge import _Merge
-from keras.layers import BatchNormalization, Activation, ZeroPadding2D, Convolution2D, Conv2DTranspose
+from keras.layers import BatchNormalization, Activation, ZeroPadding2D, Conv2DTranspose
 from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import UpSampling3D, Conv3D
 from keras.models import Sequential, Model
 from keras.optimizers import RMSprop, Adam
 from keras import initializers
 from functools import partial
-import loadData3D as d3d
+#import loadData3D as d3d
 
-LATENT_VEC_SIZE         = 20
-BATCH_SIZE              = 64
+LATENT_VEC_SIZE         = 10
+BATCH_SIZE              = 32
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
 ADAM_LR                 = .0001
@@ -66,7 +66,9 @@ class wGAN():
         self.ncols              = ny
         self.nlayers            = nz
         self.nchan              = nchan
-        self.image_dimensions   = (self.nchan, self.nrows, self.ncols, self.nlayers)
+        self.image_dimensions   = (nchan, self.nrows, self.ncols, self.nlayers)
+        print("Image dim is: " )
+        print( self.image_dimensions)
         
         self.batch_size         = BATCH_SIZE
         self.latent_dim         = LATENT_VEC_SIZE
@@ -118,7 +120,7 @@ class wGAN():
         # of the function with the averaged samples here.
         partial_gp_loss         = partial(gradientPenaltyLoss, averaged_samples=averaged_samples,
                                   gradient_penalty_weight=GRADIENT_PENALTY_WEIGHT)
-        partial_gp_loss.__name__ = 'gradient_penalty'  # Functions need names or Keras will throw an error
+        partial_gp_loss.__name__ = 'gradient_penalty'  # Functions need names in Keras
 
         # If we don't concatenate the real and generated samples, however, we get three outputs: One of the generated
         # samples, one of the real samples, and one of the averaged samples, all of size BATCH_SIZE. This works neatly!
@@ -157,18 +159,19 @@ class wGAN():
 
         discriminator = Sequential()
 
-        discriminator.add(Convolution3D(256, kernel_size=(5,5,3), strides=(2,2,2), input_shape=self.image_dimensions, 
+        discriminator.add(Conv3D(256, kernel_size=(5,5,3), strides=(2,2,2), input_shape=self.image_dimensions, 
             padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Convolution3D(256, kernel_size=(5,5,3), strides=(2,2,2), padding="same"))
+        discriminator.add(Conv3D(256, kernel_size=(5,5,3), strides=(2,2,2), padding="same"))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Convolution3D(256, kernel_size=(5,5,3), strides=(2,2,2), padding="same"))
+        discriminator.add(Conv3D(256, kernel_size=(5,5,3), strides=(2,2,2), padding="same"))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
+        discriminator.add(Flatten())
 
         discriminator.add(Dense(1))
 
@@ -193,7 +196,7 @@ class wGAN():
         gLosses                     = []
 
         for epoch in range(n_epochs + 1):
-            
+            print ("Start epoch %d ----------" % epoch)
             # shuffle Xtrain
             #np.random.shuffle(X_train)
             #print("Epoch: ", epoch)
@@ -217,6 +220,11 @@ class wGAN():
                     noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim]).astype(np.float32)
 
                     # Train discriminator model
+                    print(image_batch.shape)
+                    print(noise.shape)
+                    print(negative_y.shape)
+                    print(positive_y.shape)
+                    print(dummy_y.shape)
                     d_loss = self.discriminator_model.train_on_batch([image_batch, noise],
                                                                  [positive_y, negative_y, dummy_y])
 
@@ -259,19 +267,49 @@ class wGAN():
         self.generator_model.save('models/wgan_gen_ep_%d.h5' % epoch)
         #self.discriminator.save('models/wgan_discriminator_epoch_%d.h5' % epoch)
 
+def buildDataset_3D(filename, datatype='uint8', nx=96, ny=96, nz=16):
+
+  X                     = pd.read_csv(filename, header=None) 
+  X                     = X.values.astype(datatype)
+  X                     = X.T
+  m                     = X.shape[0]
+  n                     = X.shape[1]
+
+  print("Number of images: " + str(m) )
+  
+  if (n != nx*ny*nz):
+    print("The number of rows is incorrect")
+    exit()
+
+  
+  
+  # Random permutation of samples
+  p         = np.random.permutation(m)
+  X         = X[p,:]
+  
+  # Reshape X and crop to 96x96 pixels
+  X_train = np.zeros((m,nx,ny,nz))
+
+  for i in range(m):
+    Xtemp = np.reshape(X[i,:],(nz,nx,ny))
+    X_train[i,:,:,:] = np.moveaxis(Xtemp, 0, -1)
+
+  print("X_train shape: " + str(X_train.shape))
+  
+  return X_train
 
 if __name__ == '__main__':
     # Load dataset
-    filename                    = "data/train/braidedData3DSmall.csv"
+    filename                    = "data/train/braidedCubes.csv"
     datatype                    = 'uint8'
     nx                          = 96
     ny                          = 96
     nz                          = 16
     nchan                       = 1
 
-    X_train                     = d3d.buildDataset_3D(filename, datatype, nx, ny, nz)
+    X_train                     = buildDataset_3D(filename, datatype, nx, ny, nz)
     
-    # Insert channel axis 
+    # Insert channel dimension 
     X_train                     = X_train[:, np.newaxis, :, :, :]
 
     # Initialize a class instance

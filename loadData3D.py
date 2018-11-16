@@ -8,9 +8,9 @@ def load_file(fname, type):
      return X
 
 # Create channels first training dataset
-def buildDataset_3D(X, type, nx, ny, nz):
+def buildDataset_3D(filename, type, nx, ny, nz):
 
-  X                     = load_file(filename)
+  X                     = load_file(filename, 'uint8')
   
   m                     = X.shape[0]
   print("Number of images: " + str(m) )
