@@ -216,7 +216,7 @@ class wGAN():
 
             # Create cube
 
-            for i in range(1,nlayers):
+            for i in range(1,self.nlayers):
               noise2            = np.random.normal(0, 1, size=[nSamples, randomDim])
               noise             = noise + eps*noise2
               generatedImages   = generator.predict(noise)
