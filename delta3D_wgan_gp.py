@@ -288,7 +288,7 @@ class wGAN():
 
     # Save the generator and discriminator networks (and weights) for later use
     def saveModels(self, epoch):
-        self.generator.save('models/wgan_gen_ep_%d.h5' % epoch)
+        self.generator.save('models/wgan3D_gen_ep_%d.h5' % epoch)
         #self.discriminator.save('models/wgan_discriminator_epoch_%d.h5' % epoch)
 
 def buildDataset_3D(filename, datatype='uint8', nx=96, ny=96, nz=16):
