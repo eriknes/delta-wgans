@@ -341,7 +341,7 @@ def buildDataset_3D(filename, datatype='uint8', nx=96, ny=96, nz=16):
 
 if __name__ == '__main__':
     # Load dataset
-    generator = kmod.load_model('models/wganGen_20.h5' , custom_objects={'wassersteinLoss': wassersteinLoss})
+    generator = kmod.load_model('models/wganGen_epoch190_latent20.h5' , custom_objects={'wassersteinLoss': wassersteinLoss})
     filename                    = "data/train/test3D.csv"
     datatype                    = 'uint8'
     nx                          = 96
