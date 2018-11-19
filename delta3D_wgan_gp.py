@@ -266,12 +266,12 @@ class wGAN():
                     
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
-                #self.saveGenImages(epoch)
+                self.saveGenImages(epoch)
                 #self.plotSampleImages(epoch, image_batch)
                 self.saveModels(epoch)
                 #self.plotLoss(epoch, dLosses, gLosses)
 
-    def saveGenImages(self, epoch, examples=25, dim=(5, 5), figsize=(10, 10)):
+    def saveGenImages(self, epoch, examples=16, dim=(4, 4), figsize=(10, 10)):
         
         noise = np.random.normal(0, 1, size=[examples, self.latent_dim])
         generated_images = self.generator.predict(noise)
@@ -279,7 +279,7 @@ class wGAN():
         plt.figure(figsize=figsize)
         for i in range(examples):
             plt.subplot(dim[0], dim[1], i+1)
-            plt.imshow(generated_images[i, 0], interpolation='nearest', cmap='gray_r')
+            plt.imshow(generated_images[0, 0, :, :, i], interpolation='nearest', cmap='gray_r')
             plt.axis('off')
         plt.tight_layout()
         plt.savefig('images/wgan_image_epoch_%d.png' % epoch)
@@ -288,7 +288,7 @@ class wGAN():
 
     # Save the generator and discriminator networks (and weights) for later use
     def saveModels(self, epoch):
-        self.generator_model.save('models/wgan_gen_ep_%d.h5' % epoch)
+        self.generator.save('models/wgan_gen_ep_%d.h5' % epoch)
         #self.discriminator.save('models/wgan_discriminator_epoch_%d.h5' % epoch)
 
 def buildDataset_3D(filename, datatype='uint8', nx=96, ny=96, nz=16):
