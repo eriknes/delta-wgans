@@ -191,7 +191,7 @@ class wGAN():
         dummy_y     = np.zeros((self.batch_size, 1), dtype=np.float32)
 
 
-        eps = 2
+        eps = .5
         randomDim = 20
 
         #batch_count = int(X_train.shape[0] / (self.batch_size * N_CRITIC_ITER))
