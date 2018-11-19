@@ -208,8 +208,8 @@ class wGAN():
             #print("Number of batches: ", int(X_train.shape[0] // BATCH_SIZE))
 
             nSamples        = BATCH_COUNT*N_CRITIC_ITER
-            noise           = np.random.normal(0, self.nlayers, size=[nSamples, randomDim])
-            generatedCube   = np.zeros((nSamples, self.nlayers, self.nrows,self.ncols))
+            noise           = np.random.normal(0, 1, size=[nSamples, randomDim])
+            generatedCube   = np.zeros((nSamples, self.nrows,self.ncols, self.nlayers))
             generatedImages = generator.predict(noise)
 
             generatedCube[:,:,:,0] = np.round(np.reshape(generatedImages, (nSamples, self.nrows, self.ncols)))
