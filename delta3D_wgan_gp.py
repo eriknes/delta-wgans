@@ -21,7 +21,7 @@ from functools import partial
 
 LATENT_VEC_SIZE         = 25
 BATCH_COUNT             = 10
-BATCH_SIZE              = 64
+BATCH_SIZE              = 32
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
 ADAM_LR                 = .0001
