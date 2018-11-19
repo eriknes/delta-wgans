@@ -19,13 +19,13 @@ from keras import initializers
 from functools import partial
 #import loadData3D as d3d
 
-LATENT_VEC_SIZE         = 20
+LATENT_VEC_SIZE         = 25
 BATCH_COUNT             = 10
-BATCH_SIZE              = 32
+BATCH_SIZE              = 64
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
 ADAM_LR                 = .0001
-ADAM_BETA_1             = .5
+ADAM_BETA_1             = 0.0
 ADAM_BETA_2             = .9
 
 def wassersteinLoss(y_true, y_pred):
@@ -75,7 +75,7 @@ class wGAN():
         self.batch_size         = BATCH_SIZE
         self.latent_dim         = LATENT_VEC_SIZE
 
-        optim               = Adam(lr = ADAM_LR, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2)
+        #optim               = Adam(lr = ADAM_LR, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2)
 
 
         # Build the generator
@@ -140,18 +140,18 @@ class wGAN():
     def buildGenerator(self):
 
         generator = Sequential()
-        generator.add(Dense(256*12*12*2, input_dim=self.latent_dim, 
+        generator.add(Dense(128*12*12*3, input_dim=self.latent_dim, 
             kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         generator.add(Activation("relu"))
         #generator.add(Dropout(0.2))
-        generator.add(Reshape((256, 12, 12, 2)))
+        generator.add(Reshape((128, 12, 12, 3)))
         generator.add(UpSampling3D(size=(2,2,2)))
-        generator.add(Conv3D(128, kernel_size=(5, 5, 2), padding='same'))
+        generator.add(Conv3D(128, kernel_size=(5, 5, 3), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
         generator.add(Conv3D(128, kernel_size=(5, 5, 3), padding='same'))
         generator.add(Activation("relu"))
-        generator.add(UpSampling3D(size=(2, 2, 2)))
+        generator.add(UpSampling3D(size=(2, 2, 1)))
         generator.add(Conv3D(self.nchan, kernel_size=(5, 5, 3), padding='same', activation='sigmoid'))
         generator.summary()
 
@@ -161,7 +161,7 @@ class wGAN():
 
         discriminator = Sequential()
 
-        discriminator.add(Conv3D(64, kernel_size=(5,5,3), strides=(2,2,2), input_shape=self.image_dimensions, 
+        discriminator.add(Conv3D(128, kernel_size=(5,5,3), strides=(2,2,2), input_shape=self.image_dimensions, 
             padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
@@ -170,7 +170,7 @@ class wGAN():
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Conv3D(256, kernel_size=(5,5,3), strides=(2,2,2), padding="same"))
+        discriminator.add(Conv3D(128, kernel_size=(5,5,3), strides=(2,2,2), padding="same"))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
         discriminator.add(Flatten())
@@ -267,9 +267,24 @@ class wGAN():
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
                 self.saveGenImages(epoch)
-                #self.plotSampleImages(epoch, image_batch)
+                self.plotSampleData(epoch, generatedCube)
                 self.saveModels(epoch)
                 #self.plotLoss(epoch, dLosses, gLosses)
+
+    def saveSampleData(self, epoch, cube, examples=16, dim=(4, 4), figsize=(10, 10)):
+        
+        #noise = np.random.normal(0, 1, size=[examples, self.latent_dim])
+        #generated_images = self.generator.predict(noise)
+
+        plt.figure(figsize=figsize)
+        for i in range(examples):
+            plt.subplot(dim[0], dim[1], i+1)
+            plt.imshow(cube[0, 0, :, :, i], interpolation='nearest', cmap='gray_r')
+            plt.axis('off')
+            plt.title('Layer %d' % (i+1) )
+        plt.tight_layout()
+        plt.savefig('images/training_data_epoch_%d.png' % epoch)
+        plt.close()
 
     def saveGenImages(self, epoch, examples=16, dim=(4, 4), figsize=(10, 10)):
         
@@ -281,6 +296,7 @@ class wGAN():
             plt.subplot(dim[0], dim[1], i+1)
             plt.imshow(generated_images[0, 0, :, :, i], interpolation='nearest', cmap='gray_r')
             plt.axis('off')
+            plt.title('Layer %d' % (i+1) )
         plt.tight_layout()
         plt.savefig('images/wgan_image_epoch_%d.png' % epoch)
         plt.close()
