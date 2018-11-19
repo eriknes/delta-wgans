@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 
 
 import keras.backend as K
+import keras.models as kmod
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout
 from keras.layers.merge import _Merge
 from keras.layers import BatchNormalization, Activation, ZeroPadding2D, Conv2DTranspose
@@ -19,6 +20,7 @@ from functools import partial
 #import loadData3D as d3d
 
 LATENT_VEC_SIZE         = 20
+BATCH_COUNT             = 10
 BATCH_SIZE              = 32
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
@@ -179,7 +181,7 @@ class wGAN():
 
         return discriminator
 
-    def trainGAN(self, X_train, n_epochs = 10, batch_size = 64, sample_interval = 1):
+    def trainGAN(self, X_train, generator, n_epochs = 10, batch_size = 64, sample_interval = 1):
         
         # We make three label vectors for training. positive_y is the label vector for real samples, with value 1.
         # negative_y is the label vector for generated samples, with value -1. The dummy_y vector is passed to the
@@ -188,7 +190,8 @@ class wGAN():
         negative_y  = - positive_y
         dummy_y     = np.zeros((self.batch_size, 1), dtype=np.float32)
 
-        batch_count = 20
+
+        eps = 2
         #batch_count = int(X_train.shape[0] / (self.batch_size * N_CRITIC_ITER))
         #minibatch_size = int(batch_count * N_CRITIC_ITER)
 
@@ -202,7 +205,26 @@ class wGAN():
             #print("Epoch: ", epoch)
             #print("Number of batches: ", int(X_train.shape[0] // BATCH_SIZE))
 
-            for _ in range(batch_count):
+            nSamples        = BATCH_COUNT*N_CRITIC_ITER
+            noise           = np.random.normal(0, self.nlayers, size=[nSamples, randomDim])
+            generatedCube   = np.zeros((nSamples, self.nlayers, self.nx,self.ny))
+            generatedImages = generator.predict(noise)
+
+            generatedCube[:,:,:,0] = np.round(np.reshape(generatedImages, (nSamples, self.nx, self.ny)))
+
+            # Create cube
+
+            for i in range(1,nlayers):
+              noise2            = np.random.normal(0, 1, size=[nSamples, randomDim])
+              noise             = noise + eps*noise2
+              generatedImages   = generator.predict(noise)
+              newLayer          = np.reshape(generatedImages, (nSamples, self.nx, self.ny))
+              generatedCube[:,:,:,i] = np.round(newLayer)
+
+            # Insert channel dimension 
+            generatedCube                     = generatedCube[:, np.newaxis, :, :, :]
+
+            for _ in range(BATCH_COUNT):
 
                 #discriminator_minibatches = X_train[i * minibatch_size:(i + 1) * minibatch_size]
 
@@ -213,18 +235,18 @@ class wGAN():
                     # ---------------------
 
                     # Select a random batch of images
-                    idx = np.random.randint(0, X_train.shape[0], batch_size)
-                    image_batch = X_train[idx]
+                    idx         = np.random.randint(0, generatedCube.shape[0], batch_size)
+                    image_batch = generatedCube[idx]
 
                     # Sample noise as generator input
                     noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim]).astype(np.float32)
 
                     # Train discriminator model
-                    print(image_batch.shape)
-                    print(noise.shape)
-                    print(negative_y.shape)
-                    print(positive_y.shape)
-                    print(dummy_y.shape)
+                    #print(image_batch.shape)
+                    #print(noise.shape)
+                    #print(negative_y.shape)
+                    #print(positive_y.shape)
+                    #print(dummy_y.shape)
                     d_loss = self.discriminator_model.train_on_batch([image_batch, noise],
                                                                  [positive_y, negative_y, dummy_y])
 
@@ -242,7 +264,7 @@ class wGAN():
                     
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
-                self.saveGenImages(epoch)
+                #self.saveGenImages(epoch)
                 #self.plotSampleImages(epoch, image_batch)
                 self.saveModels(epoch)
                 #self.plotLoss(epoch, dLosses, gLosses)
@@ -300,7 +322,8 @@ def buildDataset_3D(filename, datatype='uint8', nx=96, ny=96, nz=16):
 
 if __name__ == '__main__':
     # Load dataset
-    filename                    = "data/train/braidedCubes.csv"
+    generator = kmod.load_model('models/wganGen_20.h5' , custom_objects={'wassersteinLoss': wassersteinLoss})
+    filename                    = "data/train/test3D.csv"
     datatype                    = 'uint8'
     nx                          = 96
     ny                          = 96
@@ -315,5 +338,5 @@ if __name__ == '__main__':
     # Initialize a class instance
     wgan                        = wGAN(X_train)
     # Start training
-    wgan.trainGAN(X_train, n_epochs = 500, batch_size = BATCH_SIZE, sample_interval = 5)
+    wgan.trainGAN(X_train, generator, n_epochs = 500, batch_size = BATCH_SIZE, sample_interval = 5)
 
