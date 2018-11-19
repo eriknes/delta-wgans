@@ -141,7 +141,7 @@ class wGAN():
     def buildGenerator(self):
 
         generator = Sequential()
-        generator.add(Dense(64*12*12*2, input_dim=self.latent_dim, 
+        generator.add(Dense(128*12*12*2, input_dim=self.latent_dim, 
             kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         generator.add(Activation("relu"))
         #generator.add(Dropout(0.2))
