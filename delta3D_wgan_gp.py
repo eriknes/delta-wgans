@@ -25,7 +25,7 @@ BATCH_SIZE              = 64
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
 ADAM_LR                 = .0001
-ADAM_BETA_1             = 0.0
+ADAM_BETA_1             = 0.5
 ADAM_BETA_2             = .9
 
 def wassersteinLoss(y_true, y_pred):
@@ -76,6 +76,7 @@ class wGAN():
         self.latent_dim         = LATENT_VEC_SIZE
 
         #optim               = Adam(lr = ADAM_LR, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2)
+        optim               = Adam(lr = ADAM_LR, beta_1 = ADAM_BETA_1)
 
 
         # Build the generator
