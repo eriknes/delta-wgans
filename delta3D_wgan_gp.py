@@ -268,7 +268,7 @@ class wGAN():
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
                 self.saveGenImages(epoch)
-                self.plotSampleData(epoch, generatedCube)
+                self.saveSampleData(epoch, generatedCube)
                 self.saveModels(epoch)
                 #self.plotLoss(epoch, dLosses, gLosses)
 
