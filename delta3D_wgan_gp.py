@@ -25,7 +25,7 @@ BATCH_SIZE              = 36
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
 ADAM_LR                 = .0001
-ADAM_BETA_1             = 0.9
+ADAM_BETA_1             = 0.5
 ADAM_BETA_2             = 0.9
 
 def wassersteinLoss(y_true, y_pred):
@@ -150,7 +150,7 @@ class wGAN():
         generator.add(Conv3D(75, kernel_size=(5, 5, 3), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
-        generator.add(Conv3D(75, kernel_size=(5, 5, 3), padding='same'))
+        generator.add(Conv3D(75, kernel_size=(5, 5, 5), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
         generator.add(Conv3D(self.nchan, kernel_size=(5, 5, 5), padding='same', activation='sigmoid'))
@@ -270,9 +270,9 @@ class wGAN():
                 self.saveGenImages(epoch)
                 self.saveSampleData(epoch, generatedCube)
                 self.saveModels(epoch)
-                #self.plotLoss(epoch, dLosses, gLosses)
+                self.plotLoss(epoch, dLosses, gLosses)
 
-    def saveSampleData(self, epoch, cube, examples=16, dim=(4, 4), figsize=(10, 10)):
+    def saveSampleData(self, epoch, cube, examples=24, dim=(5, 5), figsize=(10, 10)):
         
         #noise = np.random.normal(0, 1, size=[examples, self.latent_dim])
         #generated_images = self.generator.predict(noise)
@@ -287,7 +287,18 @@ class wGAN():
         plt.savefig('images/training_data_epoch_%d.png' % epoch)
         plt.close()
 
-    def saveGenImages(self, epoch, examples=16, dim=(4, 4), figsize=(10, 10)):
+        # Plot the loss from each batch
+    def plotLoss(self, epoch, dLosses, gLosses):
+        plt.figure(figsize=(10, 10))
+        plt.plot(dLosses, label='Discriminator loss')
+        plt.plot(gLosses, label='Generator loss')
+        plt.xlabel('Epoch')
+        plt.ylabel('Loss')
+        plt.legend()
+        plt.savefig('images/loss_epoch_%d.png' % epoch)
+        plt.close()
+
+    def saveGenImages(self, epoch, examples=24, dim=(5, 5), figsize=(10, 10)):
         
         noise = np.random.normal(0, 1, size=[examples, self.latent_dim])
         generated_images = self.generator.predict(noise)
