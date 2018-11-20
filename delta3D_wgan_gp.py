@@ -105,7 +105,7 @@ class wGAN():
         self.generator.trainable            = False
 
 
-        real_samples                            = Input(shape=(nchan, nx, ny, nlayers))
+        real_samples                            = Input(shape=(self.nchan, self.nx, self.ny, self.nlayers))
         generator_input_for_discriminator       = Input(shape=(self.latent_dim,))
         generated_samples_for_discriminator     = self.generator(generator_input_for_discriminator)
         discriminator_output_from_generator     = self.discriminator(generated_samples_for_discriminator)
@@ -182,7 +182,7 @@ class wGAN():
 
         return discriminator
 
-    def trainGAN(self, X_train, generator, n_epochs = 10, batch_size = 64, sample_interval = 1):
+    def trainGAN(self, generator, n_epochs = 10, batch_size = 64, sample_interval = 1):
         
         # We make three label vectors for training. positive_y is the label vector for real samples, with value 1.
         # negative_y is the label vector for generated samples, with value -1. The dummy_y vector is passed to the
@@ -359,5 +359,5 @@ if __name__ == '__main__':
     # Initialize a class instance
     wgan                        = wGAN(nx, ny, nz, nchan)
     # Start training
-    wgan.trainGAN(X_train, generator, n_epochs = 500, batch_size = BATCH_SIZE, sample_interval = 5)
+    wgan.trainGAN(generator, n_epochs = 500, batch_size = BATCH_SIZE, sample_interval = 5)
 
