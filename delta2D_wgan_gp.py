@@ -64,7 +64,7 @@ class wGAN():
         self.latent_dim     = 5
 
         # Adam gradient descent
-        optim               = Adam(lr = 0.0001, beta_1 = 0, beta_2 = 0.9)
+        optim               = Adam(lr = 0.0001, beta_1 = 0.5, beta_2 = 0.9)
 
 
         # Build the generator
@@ -130,25 +130,30 @@ class wGAN():
     def buildGenerator(self):
 
         generator = Sequential()
-        generator.add(Dense(256*12*12, input_dim=self.latent_dim, 
+        generator.add(Dense(128*6*6, input_dim=self.latent_dim, 
             kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         #generator.add(LeakyReLU(.2))
         generator.add(Activation("relu"))
         #generator.add(Dropout(0.2))
-        generator.add(Reshape((256, 12, 12)))
+        generator.add(Reshape((128, 6, 6)))
 
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(256, kernel_size=(5,5), padding='same'))
+        generator.add(Conv2D(128, kernel_size=(5,5), padding='same'))
+        #generator.add(BatchNormalization(momentum=0.8))
+        #generator.add(LeakyReLU(.2))
+        generator.add(Activation("relu"))
+
+        generator.add(UpSampling2D(size=(2, 2)))
+        generator.add(Conv2D(128, kernel_size=(5,5), padding='same'))
+        generator.add(Activation("relu"))
+
+        generator.add(UpSampling2D(size=(2, 2)))
+        generator.add(Conv2D(128, kernel_size=(5, 5), padding='same'))
         #generator.add(BatchNormalization(momentum=0.8))
         #generator.add(LeakyReLU(.2))
         generator.add(Activation("relu"))
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(256, kernel_size=(5, 5), padding='same'))
-        #generator.add(BatchNormalization(momentum=0.8))
-        #generator.add(LeakyReLU(.2))
-        generator.add(Activation("relu"))
-        generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(self.nchan, kernel_size=(5, 5), padding='same', activation='sigmoid'))
+        generator.add(Conv2D(self.nchan, kernel_size=(5, 5), padding='same', activation='tanh'))
         generator.summary()
 
         return generator
@@ -158,7 +163,7 @@ class wGAN():
 
         discriminator = Sequential()
 
-        discriminator.add(Convolution2D(64, kernel_size=(5,5), strides=(2,2), input_shape=self.image_dimensions, 
+        discriminator.add(Convolution2D(256, kernel_size=(5,5), strides=(2,2), input_shape=self.image_dimensions, 
             padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
@@ -169,13 +174,13 @@ class wGAN():
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Convolution2D(256, kernel_size=(5,5), strides=(2,2), padding="same"))
+        discriminator.add(Convolution2D(128, kernel_size=(5,5), strides=(2,2), padding="same"))
         #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
         #discriminator.add(BatchNormalization(momentum=0.7))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Convolution2D(512, kernel_size=(5,5), strides=(2,2), padding="same"))
+        discriminator.add(Convolution2D(128, kernel_size=(5,5), strides=(2,2), padding="same"))
         #discriminator.add(BatchNormalization(momentum=0.7))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
@@ -227,7 +232,7 @@ class wGAN():
 
                     # Select a random batch of images
                     idx = np.random.randint(0, X_train.shape[0], batch_size)
-                    image_batch = X_train[idx]
+                    image_batch = X_train[idx]*2 - 1
                     #image_batch = discriminator_minibatches[j*batch_size:(j+1)*batch_size]
 
                     # Sample noise as generator input
@@ -257,7 +262,7 @@ class wGAN():
                 self.saveModels(epoch)
                 self.plotLoss(epoch, dLosses, gLosses)
 
-    def plotGeneratedImages(self, epoch, examples=25, dim=(5, 5), figsize=(10, 10)):
+    def plotGeneratedImages(self, epoch, examples=16, dim=(4, 4), figsize=(10, 10)):
         noise = np.random.normal(0, 1, size=[examples, self.latent_dim])
         generated_images = self.generator.predict(noise)
 
@@ -270,7 +275,7 @@ class wGAN():
         plt.savefig('images/wgan_image_epoch_%d.png' % epoch)
         plt.close()
 
-    def plotSampleImages(self, epoch, images, examples=25, dim=(5, 5), figsize=(10, 10)):
+    def plotSampleImages(self, epoch, images, examples=16, dim=(4, 4), figsize=(10, 10)):
 
         plt.figure(figsize=figsize)
         for i in range(examples):
@@ -340,7 +345,7 @@ def build_dataset( filename, nx, ny, n_test = 0):
 
 if __name__ == '__main__':
     # Load dataset
-    filename                    = "data/train/braidedDataSmall.csv"
+    filename                    = "data/train/braidedData.csv"
     (X_train, y_train) = build_dataset(filename, 96, 96, 0)
     X_train                     = X_train[:, np.newaxis, :, :]
 
