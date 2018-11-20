@@ -145,7 +145,7 @@ class wGAN():
             kernel_initializer=initializers.RandomNormal(stddev=0.01)))
         generator.add(Activation("relu"))
         #generator.add(Dropout(0.2))
-        generator.add(Reshape((32, 12, 12, 3)))
+        generator.add(Reshape((32, 6, 6, 3)))
         generator.add(UpSampling3D(size=(2,2,2)))
         generator.add(Conv3D(64, kernel_size=(5, 5, 3), padding='same'))
         generator.add(Activation("relu"))
