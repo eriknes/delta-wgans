@@ -153,7 +153,7 @@ class wGAN():
         generator.add(Conv3D(64, kernel_size=(5, 5, 3), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 1)))
-        generator.add(Conv3D(48, kernel_size=(5, 5, 3), padding='same'))
+        generator.add(Conv3D(32, kernel_size=(5, 5, 3), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
         generator.add(Conv3D(self.nchan, kernel_size=(5, 5, 3), padding='same', activation='sigmoid'))
