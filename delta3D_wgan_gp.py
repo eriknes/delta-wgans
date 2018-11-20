@@ -141,19 +141,19 @@ class wGAN():
     def buildGenerator(self):
 
         generator = Sequential()
-        generator.add(Dense(32*6*6*3, input_dim=self.latent_dim, 
+        generator.add(Dense(16*6*6*3, input_dim=self.latent_dim, 
             kernel_initializer=initializers.RandomNormal(stddev=0.01)))
         generator.add(Activation("relu"))
         #generator.add(Dropout(0.2))
-        generator.add(Reshape((32, 6, 6, 3)))
+        generator.add(Reshape((16, 6, 6, 3)))
         generator.add(UpSampling3D(size=(2,2,2)))
-        generator.add(Conv3D(64, kernel_size=(5, 5, 3), padding='same'))
+        generator.add(Conv3D(32, kernel_size=(5, 5, 3), padding='same'))
         generator.add(Activation("relu"))
-        generator.add(UpSampling3D(size=(2,2,2)))
+        generator.add(UpSampling3D(size=(2, 2, 2)))
         generator.add(Conv3D(64, kernel_size=(5, 5, 3), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 1)))
-        generator.add(Conv3D(32, kernel_size=(5, 5, 3), padding='same'))
+        generator.add(Conv3D(64, kernel_size=(5, 5, 3), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
         generator.add(Conv3D(self.nchan, kernel_size=(5, 5, 3), padding='same', activation='sigmoid'))
