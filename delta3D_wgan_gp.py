@@ -21,7 +21,7 @@ from functools import partial
 
 LATENT_VEC_SIZE         = 40
 BATCH_COUNT             = 5
-BATCH_SIZE              = 64
+BATCH_SIZE              = 40
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
 ADAM_LR                 = .0001
@@ -147,10 +147,10 @@ class wGAN():
         #generator.add(Dropout(0.2))
         generator.add(Reshape((64, 12, 12, 3)))
         generator.add(UpSampling3D(size=(2,2,2)))
-        generator.add(Conv3D(96, kernel_size=(5, 5, 4), padding='same'))
+        generator.add(Conv3D(84, kernel_size=(5, 5, 3), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
-        generator.add(Conv3D(96, kernel_size=(5, 5, 5), padding='same'))
+        generator.add(Conv3D(84, kernel_size=(5, 5, 3), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
         generator.add(Conv3D(self.nchan, kernel_size=(5, 5, 5), padding='same', activation='sigmoid'))
@@ -171,7 +171,7 @@ class wGAN():
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Conv3D(128, kernel_size=(5,5,4), strides=(2,2,2), padding="same"))
+        discriminator.add(Conv3D(128, kernel_size=(5,5,3), strides=(2,2,2), padding="same"))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
         discriminator.add(Flatten())
