@@ -19,9 +19,9 @@ from keras import initializers
 from functools import partial
 #import loadData3D as d3d
 
-LATENT_VEC_SIZE         = 40
+LATENT_VEC_SIZE         = 30
 BATCH_COUNT             = 5
-BATCH_SIZE              = 40
+BATCH_SIZE              = 36
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
 ADAM_LR                 = .0001
@@ -147,10 +147,10 @@ class wGAN():
         #generator.add(Dropout(0.2))
         generator.add(Reshape((64, 12, 12, 3)))
         generator.add(UpSampling3D(size=(2,2,2)))
-        generator.add(Conv3D(84, kernel_size=(5, 5, 3), padding='same'))
+        generator.add(Conv3D(75, kernel_size=(5, 5, 3), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
-        generator.add(Conv3D(84, kernel_size=(5, 5, 3), padding='same'))
+        generator.add(Conv3D(75, kernel_size=(5, 5, 3), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
         generator.add(Conv3D(self.nchan, kernel_size=(5, 5, 5), padding='same', activation='sigmoid'))
