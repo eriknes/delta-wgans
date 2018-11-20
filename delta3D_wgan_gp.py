@@ -19,14 +19,14 @@ from keras import initializers
 from functools import partial
 #import loadData3D as d3d
 
-LATENT_VEC_SIZE         = 25
-BATCH_COUNT             = 10
+LATENT_VEC_SIZE         = 40
+BATCH_COUNT             = 5
 BATCH_SIZE              = 32
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
 ADAM_LR                 = .0001
-ADAM_BETA_1             = 0.5
-ADAM_BETA_2             = .9
+ADAM_BETA_1             = 0.9
+ADAM_BETA_2             = 0.9
 
 def wassersteinLoss(y_true, y_pred):
     """Wasserstein loss for a sample batch."""
@@ -56,14 +56,14 @@ class RandomWeightedAverage(_Merge):
         return (weights * inputs[0]) + ((1 - weights) * inputs[1])
 
 class wGAN():
-    def __init__(self, X_train):
+    def __init__(self, nx, ny, nz, nchan):
         
         # Uncomment for deterministic output.
         #np.random.seed(1)
 
         # Theano uses ordering nchannels, nx, ny, nz
         K.set_image_dim_ordering('th')
-        (nchan,nx,ny,nz)        = X_train[0].shape
+        #(nchan,nx,ny,nz)        = X_train[0].shape
         self.nrows              = nx
         self.ncols              = ny
         self.nlayers            = nz
@@ -75,8 +75,8 @@ class wGAN():
         self.batch_size         = BATCH_SIZE
         self.latent_dim         = LATENT_VEC_SIZE
 
-        #optim               = Adam(lr = ADAM_LR, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2)
-        optim               = Adam(lr = ADAM_LR, beta_1 = ADAM_BETA_1)
+        optim               = Adam(lr = ADAM_LR, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2)
+        #optim               = Adam(lr = ADAM_LR, beta_1 = ADAM_BETA_1)
 
 
         # Build the generator
@@ -101,11 +101,11 @@ class wGAN():
             layer.trainable                 = True
         for layer in self.generator.layers:
             layer.trainable                 = False
-        self.discriminator.trainable    = True
-        self.generator.trainable        = False
+        self.discriminator.trainable        = True
+        self.generator.trainable            = False
 
 
-        real_samples                            = Input(shape=X_train.shape[1:])
+        real_samples                            = Input(shape=(nchan, nx, ny, nlayers))
         generator_input_for_discriminator       = Input(shape=(self.latent_dim,))
         generated_samples_for_discriminator     = self.generator(generator_input_for_discriminator)
         discriminator_output_from_generator     = self.discriminator(generated_samples_for_discriminator)
@@ -141,19 +141,19 @@ class wGAN():
     def buildGenerator(self):
 
         generator = Sequential()
-        generator.add(Dense(128*12*12*2, input_dim=self.latent_dim, 
-            kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+        generator.add(Dense(64*12*12*3, input_dim=self.latent_dim, 
+            kernel_initializer=initializers.RandomNormal(stddev=0.01)))
         generator.add(Activation("relu"))
         #generator.add(Dropout(0.2))
-        generator.add(Reshape((128, 12, 12, 2)))
+        generator.add(Reshape((64, 12, 12, 2)))
         generator.add(UpSampling3D(size=(2,2,2)))
-        generator.add(Conv3D(64, kernel_size=(5, 5, 3), padding='same'))
+        generator.add(Conv3D(128, kernel_size=(5, 5, 3), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
-        generator.add(Conv3D(64, kernel_size=(5, 5, 3), padding='same'))
+        generator.add(Conv3D(256, kernel_size=(5, 5, 5), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
-        generator.add(Conv3D(self.nchan, kernel_size=(5, 5, 3), padding='same', activation='sigmoid'))
+        generator.add(Conv3D(self.nchan, kernel_size=(5, 5, 5), padding='same', activation='sigmoid'))
         generator.summary()
 
         return generator
@@ -163,15 +163,15 @@ class wGAN():
         discriminator = Sequential()
 
         discriminator.add(Conv3D(64, kernel_size=(5,5,3), strides=(2,2,2), input_shape=self.image_dimensions, 
-            padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+            padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.01)))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Conv3D(64, kernel_size=(5,5,3), strides=(2,2,2), padding="same"))
+        discriminator.add(Conv3D(128, kernel_size=(5,5,3), strides=(2,2,2), padding="same"))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Conv3D(64, kernel_size=(5,5,3), strides=(2,2,2), padding="same"))
+        discriminator.add(Conv3D(256, kernel_size=(5,5,3), strides=(2,2,2), padding="same"))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
         discriminator.add(Flatten())
@@ -340,22 +340,24 @@ def buildDataset_3D(filename, datatype='uint8', nx=96, ny=96, nz=16):
   return X_train
 
 if __name__ == '__main__':
+    
     # Load dataset
-    generator = kmod.load_model('models/wganGen_epoch190_latent20.h5' , custom_objects={'wassersteinLoss': wassersteinLoss})
-    filename                    = "data/train/test3D.csv"
+    generator           = kmod.load_model('models/braided_gen_latent20.h5', 
+            custom_objects={'wassersteinLoss': wassersteinLoss})
+    #filename                    = "data/train/test3D.csv"
     datatype                    = 'uint8'
     nx                          = 96
     ny                          = 96
-    nz                          = 16
+    nz                          = 24
     nchan                       = 1
 
-    X_train                     = buildDataset_3D(filename, datatype, nx, ny, nz)
+    #X_train                     = buildDataset_3D(filename, datatype, nx, ny, nz)
     
     # Insert channel dimension 
-    X_train                     = X_train[:, np.newaxis, :, :, :]
+    #X_train                     = X_train[:, np.newaxis, :, :, :]
 
     # Initialize a class instance
-    wgan                        = wGAN(X_train)
+    wgan                        = wGAN(nx, ny, nz, nchan)
     # Start training
     wgan.trainGAN(X_train, generator, n_epochs = 500, batch_size = BATCH_SIZE, sample_interval = 5)
 
