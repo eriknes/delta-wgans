@@ -147,10 +147,10 @@ class wGAN():
         #generator.add(Dropout(0.2))
         generator.add(Reshape((64, 12, 12, 3)))
         generator.add(UpSampling3D(size=(2,2,2)))
-        generator.add(Conv3D(128, kernel_size=(5, 5, 4), padding='same'))
+        generator.add(Conv3D(96, kernel_size=(5, 5, 4), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
-        generator.add(Conv3D(128, kernel_size=(5, 5, 5), padding='same'))
+        generator.add(Conv3D(96, kernel_size=(5, 5, 5), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
         generator.add(Conv3D(self.nchan, kernel_size=(5, 5, 5), padding='same', activation='sigmoid'))
@@ -162,16 +162,16 @@ class wGAN():
 
         discriminator = Sequential()
 
-        discriminator.add(Conv3D(64, kernel_size=(5,5,3), strides=(2,2,2), input_shape=self.image_dimensions, 
+        discriminator.add(Conv3D(64, kernel_size=(5,5,5), strides=(2,2,2), input_shape=self.image_dimensions, 
             padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.01)))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Conv3D(128, kernel_size=(5,5,3), strides=(2,2,2), padding="same"))
+        discriminator.add(Conv3D(128, kernel_size=(5,5,5), strides=(2,2,2), padding="same"))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Conv3D(256, kernel_size=(5,5,3), strides=(2,2,2), padding="same"))
+        discriminator.add(Conv3D(128, kernel_size=(5,5,4), strides=(2,2,2), padding="same"))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
         discriminator.add(Flatten())
@@ -192,7 +192,7 @@ class wGAN():
         dummy_y     = np.zeros((self.batch_size, 1), dtype=np.float32)
 
 
-        eps = .5
+        eps = .3
         randomDim = 20
 
         #batch_count = int(X_train.shape[0] / (self.batch_size * N_CRITIC_ITER))
