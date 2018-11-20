@@ -24,8 +24,8 @@ BATCH_COUNT             = 5
 BATCH_SIZE              = 36
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
-ADAM_LR                 = .0002
-ADAM_BETA_1             = 0.5
+ADAM_LR                 = .0001
+ADAM_BETA_1             = 0.9
 ADAM_BETA_2             = 0.9
 
 def wassersteinLoss(y_true, y_pred):
