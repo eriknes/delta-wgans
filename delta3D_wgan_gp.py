@@ -25,7 +25,7 @@ BATCH_SIZE              = 36
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
 ADAM_LR                 = .0001
-ADAM_BETA_1             = 0.9
+ADAM_BETA_1             = 0.1
 ADAM_BETA_2             = 0.9
 
 def wassersteinLoss(y_true, y_pred):
@@ -171,9 +171,14 @@ class wGAN():
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Conv3D(64, kernel_size=(5,5,3), strides=(2,2,2), padding="same"))
+        discriminator.add(Conv3D(128, kernel_size=(5,5,3), strides=(2,2,2), padding="same"))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
+
+        discriminator.add(Conv3D(64, kernel_size=(5,5,3), strides=(2,2,1), padding="same"))
+        discriminator.add(LeakyReLU(.2))
+        discriminator.add(Dropout(0.3))
+
         discriminator.add(Flatten())
 
         discriminator.add(Dense(1))
