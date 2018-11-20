@@ -19,12 +19,12 @@ from keras import initializers
 from functools import partial
 #import loadData3D as d3d
 
-LATENT_VEC_SIZE         = 30
+LATENT_VEC_SIZE         = 20
 BATCH_COUNT             = 5
 BATCH_SIZE              = 36
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
-ADAM_LR                 = .0001
+ADAM_LR                 = .0002
 ADAM_BETA_1             = 0.5
 ADAM_BETA_2             = 0.9
 
@@ -141,16 +141,16 @@ class wGAN():
     def buildGenerator(self):
 
         generator = Sequential()
-        generator.add(Dense(64*12*12*3, input_dim=self.latent_dim, 
+        generator.add(Dense(32*12*12*3, input_dim=self.latent_dim, 
             kernel_initializer=initializers.RandomNormal(stddev=0.01)))
         generator.add(Activation("relu"))
         #generator.add(Dropout(0.2))
-        generator.add(Reshape((64, 12, 12, 3)))
+        generator.add(Reshape((32, 12, 12, 3)))
         generator.add(UpSampling3D(size=(2,2,2)))
-        generator.add(Conv3D(75, kernel_size=(5, 5, 3), padding='same'))
+        generator.add(Conv3D(64, kernel_size=(5, 5, 5), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
-        generator.add(Conv3D(75, kernel_size=(5, 5, 5), padding='same'))
+        generator.add(Conv3D(128, kernel_size=(5, 5, 5), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
         generator.add(Conv3D(self.nchan, kernel_size=(5, 5, 5), padding='same', activation='sigmoid'))
@@ -162,7 +162,7 @@ class wGAN():
 
         discriminator = Sequential()
 
-        discriminator.add(Conv3D(64, kernel_size=(5,5,5), strides=(2,2,2), input_shape=self.image_dimensions, 
+        discriminator.add(Conv3D(32, kernel_size=(5,5,5), strides=(2,2,2), input_shape=self.image_dimensions, 
             padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.01)))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
@@ -259,8 +259,8 @@ class wGAN():
                 # ---------------------
                 noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim]).astype(np.float32)
                 g_loss = self.generator_model.train_on_batch(noise, positive_y)
-                gLosses.append(g_loss)
-                dLosses.append(.5*(d_loss[0] + d_loss[1]))
+            gLosses.append(g_loss)
+            dLosses.append(.5*(d_loss[0] + d_loss[1]))
                 
             # Print the progress
             print ("Epoch %d, [D loss: %f] [G loss: %f]" % (epoch, .5*(d_loss[0] + d_loss[1]), g_loss))
