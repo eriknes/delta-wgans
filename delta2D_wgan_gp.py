@@ -139,7 +139,7 @@ class wGAN():
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(256, kernel_size=(7,7), padding='same'))
+        generator.add(Conv2D(128, kernel_size=(7,7), padding='same'))
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
@@ -148,7 +148,7 @@ class wGAN():
         #generator.add(LeakyReLU(.2))
         generator.add(Activation("relu"))
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(self.nchan, kernel_size=(5, 5), padding='same', activation='tanh'))
+        generator.add(Conv2D(self.nchan, kernel_size=(5, 5), padding='same', activation='sigmoid'))
         generator.summary()
 
         return generator
@@ -158,18 +158,18 @@ class wGAN():
 
         discriminator = Sequential()
 
-        discriminator.add(Convolution2D(256, kernel_size=(5,5), strides=(2,2), input_shape=self.image_dimensions, 
+        discriminator.add(Convolution2D(128, kernel_size=(5,5), strides=(2,2), input_shape=self.image_dimensions, 
             padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Convolution2D(256, kernel_size=(5,5), strides=(2,2), padding="same"))
+        discriminator.add(Convolution2D(128, kernel_size=(5,5), strides=(2,2), padding="same"))
         #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
         #discriminator.add(BatchNormalization(momentum=0.7))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Convolution2D(256, kernel_size=(5,5), strides=(2,2), padding="same"))
+        discriminator.add(Convolution2D(128, kernel_size=(5,5), strides=(2,2), padding="same"))
         #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
         #discriminator.add(BatchNormalization(momentum=0.7))
         discriminator.add(LeakyReLU(.2))
@@ -227,7 +227,7 @@ class wGAN():
 
                     # Select a random batch of images
                     idx = np.random.randint(0, X_train.shape[0], batch_size)
-                    image_batch = X_train[idx]*2 - 1
+                    image_batch = X_train[idx]
                     #image_batch = discriminator_minibatches[j*batch_size:(j+1)*batch_size]
 
                     # Sample noise as generator input
