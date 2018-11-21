@@ -61,7 +61,7 @@ class wGAN():
         self.image_dimensions     = (self.nchan, self.nrows, self.ncols)
         
         self.batch_size     = BATCH_SIZE
-        self.latent_dim     = 5
+        self.latent_dim     = 50
 
         # Adam gradient descent
         optim               = Adam(lr = 0.0001, beta_1 = 0.5, beta_2 = 0.9)
