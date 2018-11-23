@@ -130,24 +130,24 @@ class wGAN():
     def buildGenerator(self):
 
         generator = Sequential()
-        generator.add(Dense(32*12*12, input_dim=self.latent_dim, 
+        generator.add(Dense(64*12*12, input_dim=self.latent_dim, 
             kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         #generator.add(LeakyReLU(.2))
         generator.add(Activation("relu"))
         #generator.add(Dropout(0.2))
-        generator.add(Reshape((32, 12, 12)))
+        generator.add(Reshape((64, 12, 12)))
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(64, kernel_size=(7,7), padding='same'))
-        generator.add(Activation("relu"))
-
-        generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(128, kernel_size=(7, 7), padding='same'))
+        generator.add(Conv2D(128, kernel_size=(7,7), padding='same'))
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
         generator.add(Conv2D(256, kernel_size=(7, 7), padding='same'))
+        generator.add(Activation("relu"))
+
+        generator.add(UpSampling2D(size=(2, 2)))
+        generator.add(Conv2D(512, kernel_size=(7, 7), padding='same'))
         generator.add(Activation("relu"))
         
         generator.add(Conv2D(self.nchan, kernel_size=(7, 7), padding='same', activation='sigmoid'))
@@ -160,16 +160,10 @@ class wGAN():
 
         discriminator = Sequential()
 
-        discriminator.add(Convolution2D(32, kernel_size=(7,7), strides=(2,2), input_shape=self.image_dimensions, 
+        discriminator.add(Convolution2D(64, kernel_size=(7,7), strides=(2,2), input_shape=self.image_dimensions, 
             padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-        discriminator.add(LeakyReLU(.2))
-        #discriminator.add(Dropout(0.3))
-
-        discriminator.add(Convolution2D(64, kernel_size=(7,7), strides=(2,2), padding="same"))
-        #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
-        #discriminator.add(BatchNormalization(momentum=0.7))
-        discriminator.add(LeakyReLU(.2))
-        #discriminator.add(Dropout(0.3))
+        #discriminator.add(LeakyReLU(.2))
+        discriminator.add(Dropout(0.3))
 
         discriminator.add(Convolution2D(128, kernel_size=(7,7), strides=(2,2), padding="same"))
         #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
@@ -178,9 +172,15 @@ class wGAN():
         #discriminator.add(Dropout(0.3))
 
         discriminator.add(Convolution2D(256, kernel_size=(7,7), strides=(2,2), padding="same"))
+        #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
         #discriminator.add(BatchNormalization(momentum=0.7))
         discriminator.add(LeakyReLU(.2))
         #discriminator.add(Dropout(0.3))
+
+        discriminator.add(Convolution2D(512, kernel_size=(7,7), strides=(2,2), padding="same"))
+        #discriminator.add(BatchNormalization(momentum=0.7))
+        discriminator.add(LeakyReLU(.2))
+        #   discriminator.add(Dropout(0.3))
         discriminator.add(Flatten())
 
         #discriminator.add(Dense(256, kernel_initializer='he_normal'))
@@ -315,12 +315,12 @@ def build_dataset( filename, nx, ny, n_test = 0):
     print("Number of images in dataset: " + str(m) )
 
     X = X.T
-    Y = np.zeros((m,))
+    #Y = np.zeros((m,))
 
     # Random permutation of samples
     p = np.random.permutation(m)
     X = X[:,p]
-    Y = Y[p]
+    #Y = Y[p]
 
     # Reshape X and crop to 96x96 pixels
     X_new = np.zeros((m,nx,ny))
