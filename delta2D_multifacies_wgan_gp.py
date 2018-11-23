@@ -255,12 +255,12 @@ class wGAN():
                     
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
-                self.plotGeneratedImages(epoch)
-                self.plotSampleImages(epoch, image_batch)
+                self.plotGeneratedImages(epoch, 4, (self.nchan, 4))
+                self.plotSampleImages(epoch, image_batch, 4, (self.nchan, 4))
                 self.saveModels(epoch)
                 self.plotLoss(epoch, dLosses, gLosses)
 
-    def plotGeneratedImages(self, epoch, examples=4, dim=(self.nchan, 4), figsize=(10, 10)):
+    def plotGeneratedImages(self, epoch, examples=4, dim=(2, 4), figsize=(10, 10)):
         noise = np.random.normal(0, 1, size=[examples, self.latent_dim])
         generated_images = self.generator.predict(noise)
 
@@ -275,7 +275,7 @@ class wGAN():
         plt.savefig('images/wgan_image_epoch_%d.png' % epoch)
         plt.close()
 
-    def plotSampleImages(self, epoch, images, examples=4, dim=(self.nchan, 4), figsize=(10, 10)):
+    def plotSampleImages(self, epoch, images, examples=4, dim=(2, 4), figsize=(10, 10)):
 
         plt.figure(figsize=figsize)
         for i in range(examples):
