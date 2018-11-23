@@ -162,25 +162,25 @@ class wGAN():
 
         discriminator.add(Convolution2D(32, kernel_size=(7,7), strides=(2,2), input_shape=self.image_dimensions, 
             padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-        discriminator.add(LeakyReLU(.2))
+        #discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
         discriminator.add(Convolution2D(64, kernel_size=(7,7), strides=(2,2), padding="same"))
         #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
         #discriminator.add(BatchNormalization(momentum=0.7))
         discriminator.add(LeakyReLU(.2))
-        discriminator.add(Dropout(0.3))
+        #discriminator.add(Dropout(0.3))
 
         discriminator.add(Convolution2D(128, kernel_size=(7,7), strides=(2,2), padding="same"))
         #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
         #discriminator.add(BatchNormalization(momentum=0.7))
         discriminator.add(LeakyReLU(.2))
-        discriminator.add(Dropout(0.3))
+        #discriminator.add(Dropout(0.3))
 
         discriminator.add(Convolution2D(256, kernel_size=(7,7), strides=(2,2), padding="same"))
         #discriminator.add(BatchNormalization(momentum=0.7))
         discriminator.add(LeakyReLU(.2))
-        discriminator.add(Dropout(0.3))
+        #discriminator.add(Dropout(0.3))
         discriminator.add(Flatten())
 
         #discriminator.add(Dense(256, kernel_initializer='he_normal'))
