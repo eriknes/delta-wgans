@@ -55,13 +55,13 @@ class wGAN():
 
         # Theano uses ordering channels, rows, cols
         K.set_image_dim_ordering('th')
-        self.nrows          = 96
-        self.ncols          = 96
-        self.nchan          = 1
-        self.image_dimensions     = (self.nchan, self.nrows, self.ncols)
+        self.nrows                  = X_train.shape[2]
+        self.ncols                  = X_train.shape[3]
+        self.nchan                  = X_train.shape[1]
+        self.image_dimensions       = (self.nchan, self.nrows, self.ncols)
         
-        self.batch_size     = BATCH_SIZE
-        self.latent_dim     = 10
+        self.batch_size             = BATCH_SIZE
+        self.latent_dim             = 10
 
         # Adam gradient descent
         #optim               = Adam(lr = 0.0001, beta_1 = 0.5, beta_2 = 0.9)
@@ -150,7 +150,8 @@ class wGAN():
         generator.add(Conv2D(512, kernel_size=(7, 7), padding='same'))
         generator.add(Activation("relu"))
         
-        generator.add(Conv2D(self.nchan, kernel_size=(7, 7), padding='same', activation='sigmoid'))
+        generator.add(Conv2D(self.nchan, kernel_size=(7, 7), padding='same', activation='sigmoid'),
+            kernel_initializer=initializers.RandomNormal(stddev=0.02))
         generator.summary()
 
         return generator
@@ -162,25 +163,25 @@ class wGAN():
 
         discriminator.add(Convolution2D(64, kernel_size=(7,7), strides=(2,2), input_shape=self.image_dimensions, 
             padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-        #discriminator.add(LeakyReLU(.2))
+        discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
         discriminator.add(Convolution2D(128, kernel_size=(7,7), strides=(2,2), padding="same"))
         #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
         #discriminator.add(BatchNormalization(momentum=0.7))
         discriminator.add(LeakyReLU(.2))
-        #discriminator.add(Dropout(0.3))
+        discriminator.add(Dropout(0.3))
 
         discriminator.add(Convolution2D(256, kernel_size=(7,7), strides=(2,2), padding="same"))
         #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
         #discriminator.add(BatchNormalization(momentum=0.7))
         discriminator.add(LeakyReLU(.2))
-        #discriminator.add(Dropout(0.3))
+        discriminator.add(Dropout(0.3))
 
         discriminator.add(Convolution2D(512, kernel_size=(7,7), strides=(2,2), padding="same"))
         #discriminator.add(BatchNormalization(momentum=0.7))
         discriminator.add(LeakyReLU(.2))
-        #   discriminator.add(Dropout(0.3))
+        discriminator.add(Dropout(0.3))
         discriminator.add(Flatten())
 
         #discriminator.add(Dense(256, kernel_initializer='he_normal'))
@@ -188,7 +189,7 @@ class wGAN():
         #discriminator.add(LeakyReLU())
         #discriminator.add(Dropout(0.2))
         
-        discriminator.add(Dense(1))
+        discriminator.add(Dense(1), kernel_initializer=initializers.RandomNormal(stddev=0.02))
 
         discriminator.summary()
 
@@ -259,26 +260,30 @@ class wGAN():
                 self.saveModels(epoch)
                 self.plotLoss(epoch, dLosses, gLosses)
 
-    def plotGeneratedImages(self, epoch, examples=16, dim=(4, 4), figsize=(10, 10)):
+    def plotGeneratedImages(self, epoch, examples=4, dim=(self.nchan, 4), figsize=(10, 10)):
         noise = np.random.normal(0, 1, size=[examples, self.latent_dim])
         generated_images = self.generator.predict(noise)
 
         plt.figure(figsize=figsize)
         for i in range(examples):
-            plt.subplot(dim[0], dim[1], i+1)
-            plt.imshow(generated_images[i, 0], interpolation='nearest', cmap='gray_r')
-            plt.axis('off')
+            for j in range(self.nchan):
+                plt.subplot(dim[0], dim[1], i*self.nchan+j)
+                plt.imshow(generated_images[i, j], interpolation='nearest', cmap='gray_r')
+                plt.axis('off')
+                plt.title("Channel " + str(j))
         plt.tight_layout()
         plt.savefig('images/wgan_image_epoch_%d.png' % epoch)
         plt.close()
 
-    def plotSampleImages(self, epoch, images, examples=16, dim=(4, 4), figsize=(10, 10)):
+    def plotSampleImages(self, epoch, images, examples=4, dim=(self.nchan, 4), figsize=(10, 10)):
 
         plt.figure(figsize=figsize)
         for i in range(examples):
-            plt.subplot(dim[0], dim[1], i+1)
-            plt.imshow(images[i, 0], interpolation='nearest', cmap='gray_r')
-            plt.axis('off')
+            for j in range(self.nchan):
+                plt.subplot(dim[0], dim[1], i*self.nchan+j)
+                plt.imshow(images[i, j], interpolation='nearest', cmap='gray_r')
+                plt.axis('off')
+                plt.title("Channel " + str(j))
         plt.tight_layout()
         plt.savefig('images/training_samples_epoch_%d.png' % epoch)
         plt.close()
@@ -307,44 +312,50 @@ def load_file(fname):
      return X
 
  # Split into train and test data for GAN 
-def build_dataset( filename, nx, ny, n_test = 0):
+def build_dataset( filename, nx, ny):
 
-    X                     = load_file(filename)
+    X           = load_file(filename)
 
-    m = X.shape[0]
+    m           = X.shape[0]
     print("Number of images in dataset: " + str(m) )
 
-    X = X.T
+    X           = X.T
     #Y = np.zeros((m,))
 
     # Random permutation of samples
-    p = np.random.permutation(m)
-    X = X[:,p]
+    p           = np.random.permutation(m)
+    X           = X[:,p]
     #Y = Y[p]
+    nchan       = np.size(np.unique(X))
+    print("Number of facies in dataset: " + str(nchan))
 
     # Reshape X and crop to 96x96 pixels
-    X_new = np.zeros((m,nx,ny))
+    X_new       = np.zeros((m,nchan,nx,ny))
 
     for i in range(m):
-        Xtemp = np.reshape(X[:,i],(101,101))
-        X_new[i,:,:] = Xtemp[2:98,2:98]
+        Xtemp1 = np.reshape(X[:,i],(101,101))
+        Xtemp1 = Xtemp1[2:2+nx,2:2+ny]
+        for j in range(1,nchan):
+            Xtemp2              = np.zeros(Xtemp1.shape)
+            Xtemp2[np.where(Xtemp1 == j)] = 1
+            X_new[i,j,:,:]      = Xtemp2
 
-    X_train = X_new[0:m-n_test,:,:]
-    Y_train = Y[0:m-n_test]
+    #X_train = X_new[0:m-n_test,:,:]
+    #Y_train = Y[0:m-n_test]
 
     #X_test  = X_new[m-n_test:m,:,:]
     #Y_test  = Y[m-n_test:m]
 
-    print("X_train shape: " + str(X_train.shape))
-    print("Y_train shape: " + str(Y_train.shape))
+    print("X_train shape: " + str(X_new.shape))
+    #print("Y_train shape: " + str(Y_train.shape))
 
-    return X_train, Y_train
+    return X_new
 
 if __name__ == '__main__':
     # Load dataset
     filename                    = "data/train/braidedData.csv"
-    (X_train, y_train) = build_dataset(filename, 96, 96, 0)
-    X_train                     = X_train[:, np.newaxis, :, :]
+    X_train                     = build_dataset(filename, 96, 96)
+    #X_train                     = X_train[:, np.newaxis, :, :]
 
     wgan = wGAN(X_train)
     wgan.trainGAN(X_train, epochs = 500, batch_size = BATCH_SIZE, sample_interval = 10)
