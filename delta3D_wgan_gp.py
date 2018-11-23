@@ -19,7 +19,7 @@ from keras import initializers
 from functools import partial
 #import loadData3D as d3d
 
-LATENT_VEC_SIZE         = 50
+LATENT_VEC_SIZE         = 20
 BATCH_COUNT             = 5
 BATCH_SIZE              = 32
 GRADIENT_PENALTY_WEIGHT = 10
@@ -141,19 +141,21 @@ class wGAN():
     def buildGenerator(self):
 
         generator = Sequential()
-        generator.add(Dense(64*12*12*3, input_dim=self.latent_dim, 
+        generator.add(Dense(32*12*12*3, input_dim=self.latent_dim, 
             kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         generator.add(Activation("relu"))
         #generator.add(Dropout(0.2))
-        generator.add(Reshape((64, 12, 12, 3)))
+        generator.add(Reshape((32, 12, 12, 3)))
         generator.add(UpSampling3D(size=(2, 2, 2)))
         generator.add(Conv3D(64, kernel_size=(5, 5, 3), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
-        generator.add(Conv3D(64, kernel_size=(5, 5, 3), padding='same'))
+        generator.add(Conv3D(128, kernel_size=(5, 5, 5), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
-        generator.add(Conv3D(self.nchan, kernel_size=(5, 5, 5), padding='same', activation='tanh'))
+        generator.add(Conv3D(256, kernel_size=(5, 5, 5), padding='same'))
+        generator.add(Activation("relu"))
+        generator.add(Conv3D(self.nchan, kernel_size=(5, 5, 5), padding='same', activation='sigmoid'))
         generator.summary()
 
         return generator
@@ -162,12 +164,12 @@ class wGAN():
 
         discriminator = Sequential()
 
-        discriminator.add(Conv3D(128, kernel_size=(5,5,5), strides=(2,2,2), input_shape=self.image_dimensions, 
+        discriminator.add(Conv3D(32, kernel_size=(5,5,5), strides=(2,2,2), input_shape=self.image_dimensions, 
             padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Conv3D(128, kernel_size=(5,5,5), strides=(2,2,2), padding="same"))
+        discriminator.add(Conv3D(64, kernel_size=(5,5,5), strides=(2,2,2), padding="same"))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
@@ -175,7 +177,7 @@ class wGAN():
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Conv3D(128, kernel_size=(5,5,3), strides=(2,2,1), padding="same"))
+        discriminator.add(Conv3D(256, kernel_size=(5,5,3), strides=(2,2,1), padding="same"))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
@@ -227,7 +229,7 @@ class wGAN():
               noise             = noise + eps*noise2
               generatedImages   = generator.predict(noise)
               newLayer          = np.reshape(generatedImages, (nSamples, self.nrows, self.ncols))
-              generatedCube[:,:,:,i] = np.round(newLayer)*2 - 1
+              generatedCube[:,:,:,i] = np.round(newLayer)
 
             # Insert channel dimension 
             generatedCube                     = generatedCube[:, np.newaxis, :, :, :]
