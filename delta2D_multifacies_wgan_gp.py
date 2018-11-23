@@ -65,7 +65,7 @@ class wGAN():
 
         # Adam gradient descent
         #optim               = Adam(lr = 0.0001, beta_1 = 0.5, beta_2 = 0.9)
-        optim               = Adam(lr = 0.0002, beta_1 = 0.5)
+        optim               = Adam(lr = 0.0001, beta_1 = 0.5)
 
         # Build the generator
         self.generator      = self.buildGenerator()
@@ -267,7 +267,7 @@ class wGAN():
         plt.figure(figsize=figsize)
         for i in range(examples):
             for j in range(self.nchan):
-                plt.subplot(dim[0], dim[1], i*self.nchan+j)
+                plt.subplot(dim[0], dim[1], i*self.nchan+j+1)
                 plt.imshow(generated_images[i, j], interpolation='nearest', cmap='gray_r')
                 plt.axis('off')
                 plt.title("Channel " + str(j))
@@ -280,7 +280,7 @@ class wGAN():
         plt.figure(figsize=figsize)
         for i in range(examples):
             for j in range(self.nchan):
-                plt.subplot(dim[0], dim[1], i*self.nchan+j)
+                plt.subplot(dim[0], dim[1], i*self.nchan+j+1)
                 plt.imshow(images[i, j], interpolation='nearest', cmap='gray_r')
                 plt.axis('off')
                 plt.title("Channel " + str(j))
