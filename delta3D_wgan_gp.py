@@ -360,7 +360,7 @@ def buildDataset_3D(filename, datatype='uint8', nx=96, ny=96, nz=16):
 if __name__ == '__main__':
     
     # Load dataset
-    generator           = kmod.load_model('models/braided_gen_latent20.h5', 
+    generator           = kmod.load_model('models/braided_gen.h5', 
             custom_objects={'wassersteinLoss': wassersteinLoss})
     #filename                    = "data/train/test3D.csv"
     datatype                    = 'uint8'
