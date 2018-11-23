@@ -189,7 +189,7 @@ class wGAN():
         #discriminator.add(LeakyReLU())
         #discriminator.add(Dropout(0.2))
         
-        discriminator.add(Dense(1), kernel_initializer=initializers.RandomNormal(stddev=0.02))
+        discriminator.add(Dense(1, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 
         discriminator.summary()
 
