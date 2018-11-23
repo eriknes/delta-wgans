@@ -150,8 +150,8 @@ class wGAN():
         generator.add(Conv2D(512, kernel_size=(7, 7), padding='same'))
         generator.add(Activation("relu"))
         
-        generator.add(Conv2D(self.nchan, kernel_size=(7, 7), padding='same', activation='sigmoid'),
-            kernel_initializer=initializers.RandomNormal(stddev=0.02))
+        generator.add(Conv2D(self.nchan, kernel_size=(7, 7), padding='same', activation='sigmoid',
+            kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         generator.summary()
 
         return generator
