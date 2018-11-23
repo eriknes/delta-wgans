@@ -255,12 +255,12 @@ class wGAN():
                     
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
-                self.plotGeneratedImages(epoch, 4, (self.nchan, 4))
-                self.plotSampleImages(epoch, image_batch, 4, (self.nchan, 4))
+                self.plotGeneratedImages(epoch, 4, (4, self.nchan))
+                self.plotSampleImages(epoch, image_batch, 4, (4, self.nchan))
                 self.saveModels(epoch)
                 self.plotLoss(epoch, dLosses, gLosses)
 
-    def plotGeneratedImages(self, epoch, examples=4, dim=(2, 4), figsize=(10, 10)):
+    def plotGeneratedImages(self, epoch, examples=4, dim=(4,2), figsize=(10, 10)):
         noise = np.random.normal(0, 1, size=[examples, self.latent_dim])
         generated_images = self.generator.predict(noise)
 
@@ -275,7 +275,7 @@ class wGAN():
         plt.savefig('images/wgan_image_epoch_%d.png' % epoch)
         plt.close()
 
-    def plotSampleImages(self, epoch, images, examples=4, dim=(2, 4), figsize=(10, 10)):
+    def plotSampleImages(self, epoch, images, examples=4, dim=(4, 2), figsize=(10, 10)):
 
         plt.figure(figsize=figsize)
         for i in range(examples):
@@ -327,10 +327,10 @@ def build_dataset( filename, nx, ny):
     X           = X[:,p]
     #Y = Y[p]
     nchan       = np.size(np.unique(X))
-    print("Number of facies in dataset: " + str(nchan))
+    print("Number of facies in dataset: " + str(nchan-1))
 
     # Reshape X and crop to 96x96 pixels
-    X_new       = np.zeros((m,nchan,nx,ny))
+    X_new       = np.zeros((m,nchan-1,nx,ny))
 
     for i in range(m):
         Xtemp1 = np.reshape(X[:,i],(101,101))
@@ -338,7 +338,7 @@ def build_dataset( filename, nx, ny):
         for j in range(1,nchan):
             Xtemp2              = np.zeros(Xtemp1.shape)
             Xtemp2[np.where(Xtemp1 == j)] = 1
-            X_new[i,j,:,:]      = Xtemp2
+            X_new[i,j-1,:,:]      = Xtemp2
 
     #X_train = X_new[0:m-n_test,:,:]
     #Y_train = Y[0:m-n_test]
