@@ -66,7 +66,7 @@ class wGAN():
 
         # Adam gradient descent
         #optim               = Adam(lr = 0.0001, beta_1 = 0.5, beta_2 = 0.9)
-        optim               = Adam(lr = 0.0005, beta_1 = 0.5)
+        optim               = Adam(lr = 0.0001, beta_1 = 0.5)
 
         # Build the generator
         self.generator      = self.buildGenerator()
@@ -140,7 +140,7 @@ class wGAN():
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(128, kernel_size=(11,11), padding='same'))
+        generator.add(Conv2D(128, kernel_size=(9,9), padding='same'))
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
