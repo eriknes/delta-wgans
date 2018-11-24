@@ -131,8 +131,7 @@ class wGAN():
     def buildGenerator(self):
 
         generator = Sequential()
-        generator.add(Dense(64*12*12, input_dim=self.latent_dim, 
-            kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+        generator.add(Dense(64*12*12, input_dim=self.latent_dim))
         #generator.add(LeakyReLU(.2))
         generator.add(Activation("relu"))
         #generator.add(Dropout(0.2))
@@ -144,15 +143,15 @@ class wGAN():
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(256, kernel_size=(5, 5), padding='same'))
+        generator.add(Conv2D(256, kernel_size=(7, 7), padding='same'))
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(512, kernel_size=(5, 5), padding='same'))
+        generator.add(Conv2D(512, kernel_size=(7, 7), padding='same'))
         generator.add(Activation("relu"))
         
-        generator.add(Conv2D(self.nchan, kernel_size=(5, 5), padding='same', 
-            activation='sigmoid', kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+        generator.add(Conv2D(self.nchan, kernel_size=(7, 7), padding='same', 
+            activation='sigmoid'))
         generator.summary()
 
         return generator
@@ -162,8 +161,8 @@ class wGAN():
 
         discriminator = Sequential()
 
-        discriminator.add(Convolution2D(64, kernel_size=(9,9), strides=(2,2), input_shape=self.image_dimensions, 
-            padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+        discriminator.add(Convolution2D(64, kernel_size=(7,7), strides=(2,2), input_shape=self.image_dimensions, 
+            padding="same"))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
@@ -190,7 +189,7 @@ class wGAN():
         #discriminator.add(LeakyReLU())
         #discriminator.add(Dropout(0.2))
         
-        discriminator.add(Dense(1, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+        discriminator.add(Dense(1))
 
         discriminator.summary()
 
