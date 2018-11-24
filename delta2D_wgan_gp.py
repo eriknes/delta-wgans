@@ -66,7 +66,7 @@ class wGAN():
 
         # Adam gradient descent
         #optim               = Adam(lr = 0.0001, beta_1 = 0.5, beta_2 = 0.9)
-        optim               = Adam(lr = 0.0001, beta_1 = 0.5)
+        optim               = Adam(lr = 0.0002, beta_1 = 0.5)
 
         # Build the generator
         self.generator      = self.buildGenerator()
@@ -140,18 +140,19 @@ class wGAN():
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(128, kernel_size=(9,9), padding='same'))
+        generator.add(Conv2D(128, kernel_size=(7,7), padding='same'))
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(256, kernel_size=(7, 7), padding='same'))
+        generator.add(Conv2D(256, kernel_size=(5, 5), padding='same'))
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
         generator.add(Conv2D(512, kernel_size=(5, 5), padding='same'))
         generator.add(Activation("relu"))
         
-        generator.add(Conv2D(self.nchan, kernel_size=(5, 5), padding='same', activation='sigmoid'))
+        generator.add(Conv2D(self.nchan, kernel_size=(5, 5), padding='same', 
+            activation='sigmoid', kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         generator.summary()
 
         return generator
@@ -189,7 +190,7 @@ class wGAN():
         #discriminator.add(LeakyReLU())
         #discriminator.add(Dropout(0.2))
         
-        discriminator.add(Dense(1))
+        discriminator.add(Dense(1, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 
         discriminator.summary()
 
