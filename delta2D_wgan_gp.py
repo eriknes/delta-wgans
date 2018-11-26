@@ -148,7 +148,7 @@ class wGAN():
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(256, kernel_size=(5, 5), padding='same'))
+        generator.add(Conv2D(196, kernel_size=(5, 5), padding='same'))
         generator.add(Activation("relu"))
         
         generator.add(Conv2D(self.nchan, kernel_size=(5, 5), padding='same', 
