@@ -21,7 +21,7 @@ from functools import partial
 
 LATENT_VEC_SIZE         = 20
 BATCH_COUNT             = 10
-BATCH_SIZE              = 32
+BATCH_SIZE              = 64
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
 ADAM_LR                 = .0002
@@ -153,7 +153,7 @@ class wGAN():
         generator.add(Conv3D(64, kernel_size=(7, 7, 5), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
-        generator.add(Conv3D(150, kernel_size=(5, 5, 5), padding='same'))
+        generator.add(Conv3D(128, kernel_size=(5, 5, 5), padding='same'))
         generator.add(Activation("relu"))
         generator.add(Conv3D(self.nchan, kernel_size=(5, 5, 5), padding='same', activation='sigmoid'))
         generator.summary()
