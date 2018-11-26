@@ -20,8 +20,8 @@ from functools import partial
 #import loadData3D as d3d
 
 LATENT_VEC_SIZE         = 20
-BATCH_COUNT             = 5
-BATCH_SIZE              = 40
+BATCH_COUNT             = 10
+BATCH_SIZE              = 64
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
 ADAM_LR                 = .0002
@@ -177,7 +177,7 @@ class wGAN():
         discriminator.add(LeakyReLU(.2))
         #discriminator.add(Dropout(0.3))
 
-        discriminator.add(Conv3D(150, kernel_size=(5,5,3), strides=(2,2,1), padding="same"))
+        discriminator.add(Conv3D(128, kernel_size=(5,5,3), strides=(2,2,1), padding="same"))
         discriminator.add(LeakyReLU(.2))
         #discriminator.add(Dropout(0.3))
 
