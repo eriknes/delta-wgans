@@ -21,10 +21,10 @@ from functools import partial
 
 LATENT_VEC_SIZE         = 20
 BATCH_COUNT             = 5
-BATCH_SIZE              = 36
+BATCH_SIZE              = 40
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
-ADAM_LR                 = .0001
+ADAM_LR                 = .0002
 ADAM_BETA_1             = 0.5
 ADAM_BETA_2             = 0.9
 
@@ -360,7 +360,7 @@ def buildDataset_3D(filename, datatype='uint8', nx=96, ny=96, nz=16):
 if __name__ == '__main__':
     
     # Load dataset
-    generator           = kmod.load_model('models/braided_gen.h5', 
+    generator           = kmod.load_model('models/braided_gen_500.h5', 
             custom_objects={'wassersteinLoss': wassersteinLoss})
     #filename                    = "data/train/test3D.csv"
     datatype                    = 'uint8'
