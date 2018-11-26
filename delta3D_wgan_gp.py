@@ -24,7 +24,7 @@ BATCH_COUNT             = 10
 BATCH_SIZE              = 32
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
-ADAM_LR                 = .0002
+ADAM_LR                 = .0001
 ADAM_BETA_1             = 0.5
 ADAM_BETA_2             = 0.9
 
@@ -141,11 +141,11 @@ class wGAN():
     def buildGenerator(self):
 
         generator = Sequential()
-        generator.add(Dense(16*12*12*3, input_dim=self.latent_dim, 
+        generator.add(Dense(16*12*12*2, input_dim=self.latent_dim, 
             kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         generator.add(Activation("relu"))
         #generator.add(Dropout(0.2))
-        generator.add(Reshape((16, 12, 12, 3)))
+        generator.add(Reshape((16, 12, 12, 2)))
         generator.add(UpSampling3D(size=(2, 2, 2)))
         generator.add(Conv3D(32, kernel_size=(9, 9, 3), padding='same'))
         generator.add(Activation("relu"))
@@ -153,7 +153,7 @@ class wGAN():
         generator.add(Conv3D(64, kernel_size=(7, 7, 5), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
-        generator.add(Conv3D(78, kernel_size=(5, 5, 3), padding='same'))
+        generator.add(Conv3D(78, kernel_size=(5, 5, 5), padding='same'))
         generator.add(Activation("relu"))
         generator.add(Conv3D(self.nchan, kernel_size=(5, 5, 5), padding='same', activation='sigmoid'))
         generator.summary()
@@ -366,7 +366,7 @@ if __name__ == '__main__':
     datatype                    = 'uint8'
     nx                          = 96
     ny                          = 96
-    nz                          = 24
+    nz                          = 16
     nchan                       = 1
 
     #X_train                     = buildDataset_3D(filename, datatype, nx, ny, nz)
