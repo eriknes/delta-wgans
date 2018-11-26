@@ -279,7 +279,7 @@ class wGAN():
                 self.saveModels(epoch)
                 self.plotLoss(epoch, dLosses, gLosses)
 
-    def saveSampleData(self, epoch, cube, examples=24, dim=(5, 5), figsize=(10, 10)):
+    def saveSampleData(self, epoch, cube, examples=16, dim=(4, 4), figsize=(10, 10)):
         
         #noise = np.random.normal(0, 1, size=[examples, self.latent_dim])
         #generated_images = self.generator.predict(noise)
@@ -305,7 +305,7 @@ class wGAN():
         plt.savefig('images/loss_epoch_%d.png' % epoch)
         plt.close()
 
-    def saveGenImages(self, epoch, examples=24, dim=(5, 5), figsize=(10, 10)):
+    def saveGenImages(self, epoch, examples=16, dim=(4, 4), figsize=(10, 10)):
         
         noise = np.random.normal(0, 1, size=[examples, self.latent_dim])
         generated_images = self.generator.predict(noise)
