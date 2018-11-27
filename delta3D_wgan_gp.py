@@ -223,7 +223,7 @@ class wGAN():
             generatedImages = generator.predict(noise)
 
             firstLayer      = np.round(np.reshape(generatedImages, (nSamples, self.nrows*2, self.ncols*2)))
-            generatedCube[:,:,:,0] = firstLayer[:,0:2:,0:2:]
+            generatedCube[:,:,:,0] = firstLayer[:,0::2:,0::2:]
 
             # Create cube
 
@@ -232,7 +232,7 @@ class wGAN():
               noise             = noise + eps*noise2
               generatedImages   = generator.predict(noise)
               newLayer          = np.reshape(generatedImages, (nSamples, self.nrows*2, self.ncols*2))
-              generatedCube[:,:,:,i] = np.round(newLayer[:,0:2:,0:2:])
+              generatedCube[:,:,:,i] = np.round(newLayer[:,0::2:,0::2:])
 
             # Insert channel dimension 
             generatedCube                     = generatedCube[:, np.newaxis, :, :, :]
