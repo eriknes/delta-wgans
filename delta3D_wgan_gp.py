@@ -144,7 +144,7 @@ class wGAN():
         #generator.add(Dense(128, input_dim=self.latent_dim, 
         #    kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         #generator.add(Activation("relu"))
-        generator.add(Dense(32*12*12*4, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+        generator.add(Dense(32*12*12*4, input_dim=self.latent_dim, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         generator.add(Activation("relu"))
         #generator.add(Dropout(0.2))
         generator.add(Reshape((32, 12, 12, 4)))
