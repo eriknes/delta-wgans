@@ -19,7 +19,7 @@ from keras import initializers
 from functools import partial
 #import loadData3D as d3d
 
-LATENT_VEC_SIZE         = 20
+LATENT_VEC_SIZE         = 12
 BATCH_COUNT             = 10
 BATCH_SIZE              = 64
 GRADIENT_PENALTY_WEIGHT = 10
