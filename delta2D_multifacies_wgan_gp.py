@@ -61,11 +61,11 @@ class wGAN():
         self.image_dimensions       = (self.nchan, self.nrows, self.ncols)
         
         self.batch_size             = BATCH_SIZE
-        self.latent_dim             = 10
+        self.latent_dim             = 20
 
         # Adam gradient descent
         #optim               = Adam(lr = 0.0001, beta_1 = 0.5, beta_2 = 0.9)
-        optim               = Adam(lr = 0.0001, beta_1 = 0.5)
+        optim               = Adam(lr = 0.0002, beta_1 = 0.5)
 
         # Build the generator
         self.generator      = self.buildGenerator()
@@ -130,16 +130,16 @@ class wGAN():
     def buildGenerator(self):
 
         generator = Sequential()
-        generator.add(Dense(64*12*12, input_dim=self.latent_dim, 
+        generator.add(Dense(32*12*12, input_dim=self.latent_dim, 
             kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         #generator.add(LeakyReLU(.2))
         generator.add(Activation("relu"))
         #generator.add(Dropout(0.2))
-        generator.add(Reshape((64, 12, 12)))
+        generator.add(Reshape((32, 12, 12)))
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(128, kernel_size=(7,7), padding='same'))
+        generator.add(Conv2D(64, kernel_size=(9,9), padding='same'))
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
@@ -147,7 +147,7 @@ class wGAN():
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(512, kernel_size=(7, 7), padding='same'))
+        generator.add(Conv2D(512, kernel_size=(5, 5), padding='same'))
         generator.add(Activation("relu"))
         
         generator.add(Conv2D(self.nchan, kernel_size=(7, 7), padding='same', activation='sigmoid',
@@ -161,7 +161,7 @@ class wGAN():
 
         discriminator = Sequential()
 
-        discriminator.add(Convolution2D(64, kernel_size=(7,7), strides=(2,2), input_shape=self.image_dimensions, 
+        discriminator.add(Convolution2D(64, kernel_size=(9,9), strides=(2,2), input_shape=self.image_dimensions, 
             padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
@@ -172,13 +172,13 @@ class wGAN():
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Convolution2D(256, kernel_size=(7,7), strides=(2,2), padding="same"))
+        discriminator.add(Convolution2D(256, kernel_size=(5,5), strides=(2,2), padding="same"))
         #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
         #discriminator.add(BatchNormalization(momentum=0.7))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Convolution2D(512, kernel_size=(7,7), strides=(2,2), padding="same"))
+        discriminator.add(Convolution2D(512, kernel_size=(5,5), strides=(2,2), padding="same"))
         #discriminator.add(BatchNormalization(momentum=0.7))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
@@ -358,4 +358,4 @@ if __name__ == '__main__':
     #X_train                     = X_train[:, np.newaxis, :, :]
 
     wgan = wGAN(X_train)
-    wgan.trainGAN(X_train, epochs = 500, batch_size = BATCH_SIZE, sample_interval = 10)
+    wgan.trainGAN(X_train, epochs = 500, batch_size = BATCH_SIZE, sample_interval = 5)
