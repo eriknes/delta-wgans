@@ -141,13 +141,13 @@ class wGAN():
     def buildGenerator(self):
 
         generator = Sequential()
-        generator.add(Dense(1024, input_dim=self.latent_dim, 
+        generator.add(Dense(128, input_dim=self.latent_dim, 
             kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         generator.add(Activation("relu"))
-        generator.add(Dense(16*12*12*4))
+        generator.add(Dense(32*12*12*4))
         generator.add(Activation("relu"))
         #generator.add(Dropout(0.2))
-        generator.add(Reshape((16, 12, 12, 4)))
+        generator.add(Reshape((32, 12, 12, 4)))
         generator.add(UpSampling3D(size=(2, 2, 2)))
         generator.add(Conv3D(64, kernel_size=(9, 9, 3), padding='same'))
         generator.add(Activation("relu"))
@@ -169,11 +169,11 @@ class wGAN():
         discriminator.add(Conv3D(32, kernel_size=(9,9,5), strides=(2,2,2), input_shape=self.image_dimensions, 
             padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         discriminator.add(LeakyReLU(.2))
-        #discriminator.add(Dropout(0.3))
+        discriminator.add(Dropout(0.3))
 
         discriminator.add(Conv3D(64, kernel_size=(7,7,5), strides=(2,2,2), padding="same"))
         discriminator.add(LeakyReLU(.2))
-        #discriminator.add(Dropout(0.3))
+        discriminator.add(Dropout(0.3))
 
         #discriminator.add(Conv3D(64, kernel_size=(5,5,5), strides=(2,2,2), padding="same"))
         #discriminator.add(LeakyReLU(.2))
@@ -181,7 +181,7 @@ class wGAN():
 
         discriminator.add(Conv3D(128, kernel_size=(5,5,5), strides=(2,2,2), padding="same"))
         discriminator.add(LeakyReLU(.2))
-        #discriminator.add(Dropout(0.3))
+        discriminator.add(Dropout(0.3))
 
         discriminator.add(Flatten())
 
