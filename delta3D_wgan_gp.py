@@ -19,9 +19,9 @@ from keras import initializers
 from functools import partial
 #import loadData3D as d3d
 
-LATENT_VEC_SIZE         = 20
+LATENT_VEC_SIZE         = 30
 BATCH_COUNT             = 10
-BATCH_SIZE              = 32
+BATCH_SIZE              = 64
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
 ADAM_LR                 = .0001
@@ -141,20 +141,22 @@ class wGAN():
     def buildGenerator(self):
 
         generator = Sequential()
-        generator.add(Dense(16*12*12*2, input_dim=self.latent_dim, 
+        generator.add(Dense(2048, input_dim=self.latent_dim, 
             kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         generator.add(Activation("relu"))
+        generator.add(Dense(32*12*12*2))
+        generator.add(Activation("relu"))
         #generator.add(Dropout(0.2))
-        generator.add(Reshape((16, 12, 12, 2)))
+        generator.add(Reshape((32, 12, 12, 2)))
         generator.add(UpSampling3D(size=(2, 2, 2)))
-        generator.add(Conv3D(32, kernel_size=(9, 9, 3), padding='same'))
+        generator.add(Conv3D(64, kernel_size=(9, 9, 3), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
-        generator.add(Conv3D(64, kernel_size=(7, 7, 5), padding='same'))
+        generator.add(Conv3D(128, kernel_size=(7, 7, 5), padding='same'))
         generator.add(Activation("relu"))
-        generator.add(UpSampling3D(size=(2, 2, 2)))
-        generator.add(Conv3D(78, kernel_size=(5, 5, 5), padding='same'))
-        generator.add(Activation("relu"))
+        #generator.add(UpSampling3D(size=(2, 2, 2)))
+        #generator.add(Conv3D(78, kernel_size=(5, 5, 5), padding='same'))
+        #generator.add(Activation("relu"))
         generator.add(Conv3D(self.nchan, kernel_size=(5, 5, 5), padding='same', activation='sigmoid'))
         generator.summary()
 
@@ -164,20 +166,20 @@ class wGAN():
 
         discriminator = Sequential()
 
-        discriminator.add(Conv3D(16, kernel_size=(9,9,5), strides=(2,2,2), input_shape=self.image_dimensions, 
+        discriminator.add(Conv3D(32, kernel_size=(9,9,5), strides=(2,2,2), input_shape=self.image_dimensions, 
             padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         discriminator.add(LeakyReLU(.2))
         #discriminator.add(Dropout(0.3))
 
-        discriminator.add(Conv3D(32, kernel_size=(7,7,5), strides=(2,2,2), padding="same"))
+        discriminator.add(Conv3D(64, kernel_size=(7,7,5), strides=(2,2,2), padding="same"))
         discriminator.add(LeakyReLU(.2))
         #discriminator.add(Dropout(0.3))
 
-        discriminator.add(Conv3D(64, kernel_size=(5,5,5), strides=(2,2,2), padding="same"))
-        discriminator.add(LeakyReLU(.2))
+        #discriminator.add(Conv3D(64, kernel_size=(5,5,5), strides=(2,2,2), padding="same"))
+        #discriminator.add(LeakyReLU(.2))
         #discriminator.add(Dropout(0.3))
 
-        discriminator.add(Conv3D(128, kernel_size=(5,5,3), strides=(2,2,1), padding="same"))
+        discriminator.add(Conv3D(128, kernel_size=(5,5,5), strides=(2,2,2), padding="same"))
         discriminator.add(LeakyReLU(.2))
         #discriminator.add(Dropout(0.3))
 
@@ -199,8 +201,8 @@ class wGAN():
         dummy_y     = np.zeros((self.batch_size, 1), dtype=np.float32)
 
 
-        eps = .3
-        randomDim = 20
+        eps             = .5
+        randomDim       = 20
 
         #batch_count = int(X_train.shape[0] / (self.batch_size * N_CRITIC_ITER))
         #minibatch_size = int(batch_count * N_CRITIC_ITER)
@@ -220,7 +222,8 @@ class wGAN():
             generatedCube   = np.zeros((nSamples, self.nrows,self.ncols, self.nlayers))
             generatedImages = generator.predict(noise)
 
-            generatedCube[:,:,:,0] = np.round(np.reshape(generatedImages, (nSamples, self.nrows, self.ncols)))
+            firstLayer      = np.round(np.reshape(generatedImages, (nSamples, self.nrows, self.ncols)))
+            generatedCube[:,:,:,0] = firstLayer[:,0:2:,0:2:]
 
             # Create cube
 
@@ -229,7 +232,7 @@ class wGAN():
               noise             = noise + eps*noise2
               generatedImages   = generator.predict(noise)
               newLayer          = np.reshape(generatedImages, (nSamples, self.nrows, self.ncols))
-              generatedCube[:,:,:,i] = np.round(newLayer)
+              generatedCube[:,:,:,i] = np.round(newLayer[:,0:2:,0:2:])
 
             # Insert channel dimension 
             generatedCube                     = generatedCube[:, np.newaxis, :, :, :]
@@ -364,8 +367,8 @@ if __name__ == '__main__':
             custom_objects={'wassersteinLoss': wassersteinLoss})
     #filename                    = "data/train/test3D.csv"
     datatype                    = 'uint8'
-    nx                          = 96
-    ny                          = 96
+    nx                          = 48
+    ny                          = 48
     nz                          = 16
     nchan                       = 1
 
