@@ -141,10 +141,10 @@ class wGAN():
     def buildGenerator(self):
 
         generator = Sequential()
-        generator.add(Dense(128, input_dim=self.latent_dim, 
-            kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-        generator.add(Activation("relu"))
-        generator.add(Dense(32*12*12*4))
+        #generator.add(Dense(128, input_dim=self.latent_dim, 
+        #    kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+        #generator.add(Activation("relu"))
+        generator.add(Dense(32*12*12*4, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         generator.add(Activation("relu"))
         #generator.add(Dropout(0.2))
         generator.add(Reshape((32, 12, 12, 4)))
@@ -380,5 +380,5 @@ if __name__ == '__main__':
     # Initialize a class instance
     wgan                        = wGAN(nx, ny, nz, nchan)
     # Start training
-    wgan.trainGAN(generator, n_epochs = 500, batch_size = BATCH_SIZE, sample_interval = 5)
+    wgan.trainGAN(generator, n_epochs = 500, batch_size = BATCH_SIZE, sample_interval = 3)
 
