@@ -17,7 +17,7 @@ from keras.optimizers import RMSprop, Adam
 from keras import initializers
 from functools import partial
 
-BATCH_SIZE              = 64
+BATCH_SIZE              = 48
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
 
