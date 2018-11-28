@@ -65,7 +65,7 @@ class wGAN():
 
         # Adam gradient descent
         #optim               = Adam(lr = 0.0001, beta_1 = 0.5, beta_2 = 0.9)
-        optim               = Adam(lr = 0.0005, beta_1 = 0.5)
+        optim               = Adam(lr = 0.0001, beta_1 = 0.5)
 
         # Build the generator
         self.generator      = self.buildGenerator()
@@ -139,22 +139,19 @@ class wGAN():
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(128, kernel_size=(7,7), padding='same',
-            kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+        generator.add(Conv2D(128, kernel_size=(7,7), padding='same'))
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(256, kernel_size=(5, 5), padding='same',
-            kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+        generator.add(Conv2D(256, kernel_size=(7, 7), padding='same'))
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(512, kernel_size=(5, 5), padding='same',
-            kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+        generator.add(Conv2D(512, kernel_size=(7, 7), padding='same'))
         generator.add(Activation("relu"))
         
-        generator.add(Conv2D(self.nchan, kernel_size=(5, 5), padding='same', 
-            kernel_initializer=initializers.RandomNormal(stddev=0.02), activation='sigmoid'))
+        generator.add(Conv2D(self.nchan, kernel_size=(7, 7), padding='same', activation='sigmoid',
+            kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         generator.summary()
 
         return generator
@@ -169,19 +166,19 @@ class wGAN():
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Convolution2D(128, kernel_size=(5,5), strides=(2,2), padding="same"))
+        discriminator.add(Convolution2D(128, kernel_size=(7,7), strides=(2,2), padding="same"))
         #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
         #discriminator.add(BatchNormalization(momentum=0.7))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Convolution2D(256, kernel_size=(5,5), strides=(2,2), padding="same"))
+        discriminator.add(Convolution2D(256, kernel_size=(7,7), strides=(2,2), padding="same"))
         #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
         #discriminator.add(BatchNormalization(momentum=0.7))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Convolution2D(512, kernel_size=(5,5), strides=(2,2), padding="same"))
+        discriminator.add(Convolution2D(512, kernel_size=(7,7), strides=(2,2), padding="same"))
         #discriminator.add(BatchNormalization(momentum=0.7))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
@@ -192,7 +189,7 @@ class wGAN():
         #discriminator.add(LeakyReLU())
         #discriminator.add(Dropout(0.2))
         
-        discriminator.add(Dense(1))
+        discriminator.add(Dense(1, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 
         discriminator.summary()
 
@@ -249,7 +246,7 @@ class wGAN():
                 #  2 Train Generator
                 # ---------------------
                 noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim]).astype(np.float32)
-            g_loss = self.generator_model.train_on_batch(noise, positive_y)
+                g_loss = self.generator_model.train_on_batch(noise, positive_y)
             gLosses.append(g_loss)
             dLosses.append(.5*(d_loss[0] + d_loss[1]))
                 
