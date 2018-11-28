@@ -17,7 +17,7 @@ from keras.optimizers import RMSprop, Adam
 from keras import initializers
 from functools import partial
 
-BATCH_SIZE              = 48
+BATCH_SIZE              = 64
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
 
@@ -143,14 +143,14 @@ class wGAN():
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(164, kernel_size=(7, 7), padding='same'))
+        generator.add(Conv2D(256, kernel_size=(7, 7), padding='same'))
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(296, kernel_size=(7, 7), padding='same'))
+        generator.add(Conv2D(624, kernel_size=(7, 7), padding='same'))
         generator.add(Activation("relu"))
         
-        generator.add(Conv2D(self.nchan, kernel_size=(5, 5), padding='same', activation='sigmoid'))
+        generator.add(Conv2D(self.nchan, kernel_size=(7, 7), padding='same', activation='sigmoid'))
         generator.summary()
 
         return generator
@@ -160,14 +160,8 @@ class wGAN():
 
         discriminator = Sequential()
 
-        discriminator.add(Convolution2D(64, kernel_size=(7,7), strides=(2,2), input_shape=self.image_dimensions, 
+        discriminator.add(Convolution2D(128, kernel_size=(11,11), strides=(2,2), input_shape=self.image_dimensions, 
             padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-        discriminator.add(LeakyReLU(.2))
-        discriminator.add(Dropout(0.3))
-
-        discriminator.add(Convolution2D(96, kernel_size=(7,7), strides=(2,2), padding="same"))
-        #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
-        #discriminator.add(BatchNormalization(momentum=0.7))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
@@ -177,7 +171,13 @@ class wGAN():
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Convolution2D(256, kernel_size=(5,5), strides=(2,2), padding="same"))
+        discriminator.add(Convolution2D(256, kernel_size=(7,7), strides=(2,2), padding="same"))
+        #discriminator.add(ZeroPadding2D(padding=((0,1),(0,1))))
+        #discriminator.add(BatchNormalization(momentum=0.7))
+        discriminator.add(LeakyReLU(.2))
+        discriminator.add(Dropout(0.3))
+
+        discriminator.add(Convolution2D(512, kernel_size=(5,5), strides=(2,2), padding="same"))
         #discriminator.add(BatchNormalization(momentum=0.7))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
