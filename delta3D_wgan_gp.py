@@ -21,7 +21,7 @@ from functools import partial
 
 LATENT_VEC_SIZE         = 12
 BATCH_COUNT             = 10
-BATCH_SIZE              = 48
+BATCH_SIZE              = 16
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
 ADAM_LR                 = .0001
@@ -151,16 +151,16 @@ class wGAN():
         generator.add(UpSampling3D(size=(1, 1, 2)))
         #generator.add(Dropout(0.2))
         
-        generator.add(Conv3D(128, kernel_size=(7, 7, 5), padding='same'))
+        generator.add(Conv3D(256, kernel_size=(7, 7, 5), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
-        generator.add(Conv3D(256, kernel_size=(5, 5, 5), padding='same'))
+        generator.add(Conv3D(512, kernel_size=(7, 7, 5), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
         #generator.add(UpSampling3D(size=(2, 2, 2)))
         #generator.add(Conv3D(78, kernel_size=(5, 5, 5), padding='same'))
         #generator.add(Activation("relu"))
-        generator.add(Conv3D(self.nchan, kernel_size=(5, 5, 5), padding='same', activation='sigmoid'))
+        generator.add(Conv3D(self.nchan, kernel_size=(7, 7, 5), padding='same', activation='sigmoid'))
         generator.summary()
 
         return generator
@@ -169,7 +169,7 @@ class wGAN():
 
         discriminator = Sequential()
 
-        discriminator.add(Conv3D(64, kernel_size=(9,9,5), strides=(2,2,2), input_shape=self.image_dimensions, 
+        discriminator.add(Conv3D(64, kernel_size=(7,7,5), strides=(2,2,2), input_shape=self.image_dimensions, 
             padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
@@ -182,7 +182,7 @@ class wGAN():
         #discriminator.add(LeakyReLU(.2))
         #discriminator.add(Dropout(0.3))
 
-        discriminator.add(Conv3D(256, kernel_size=(5,5,5), strides=(2,2,2), padding="same"))
+        discriminator.add(Conv3D(256, kernel_size=(7,7,5), strides=(2,2,2), padding="same"))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
