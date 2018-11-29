@@ -154,13 +154,14 @@ class wGAN():
         generator.add(Conv3D(256, kernel_size=(7, 7, 5), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
-        generator.add(Conv3D(512, kernel_size=(7, 7, 5), padding='same'))
+        generator.add(Conv3D(486, kernel_size=(7, 7, 5), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
         #generator.add(UpSampling3D(size=(2, 2, 2)))
         #generator.add(Conv3D(78, kernel_size=(5, 5, 5), padding='same'))
         #generator.add(Activation("relu"))
-        generator.add(Conv3D(self.nchan, kernel_size=(7, 7, 5), padding='same', activation='sigmoid'))
+        generator.add(Conv3D(self.nchan, kernel_size=(7, 7, 5), padding='same', 
+            activation='sigmoid', kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         generator.summary()
 
         return generator
@@ -188,7 +189,7 @@ class wGAN():
 
         discriminator.add(Flatten())
 
-        discriminator.add(Dense(1))
+        discriminator.add(Dense(1, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 
         discriminator.summary()
 
