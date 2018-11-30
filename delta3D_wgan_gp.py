@@ -144,8 +144,8 @@ class wGAN():
         #generator.add(Dense(128, input_dim=self.latent_dim, 
         #    kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         #generator.add(Activation("relu"))
-        generator.add(Dense(64*6*6*2, input_dim=self.latent_dim, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-        generator.add(Reshape((64, 6, 6, 2)))
+        generator.add(Dense(64*8*8*2, input_dim=self.latent_dim, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+        generator.add(Reshape((64, 8, 8, 2)))
 
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
@@ -227,7 +227,7 @@ class wGAN():
             generatedImages = generator.predict(noise)
 
             firstLayer      = np.round(np.reshape(generatedImages, (nSamples, 96, 96)))
-            generatedCube[:,:,:,0] = firstLayer[:,20:80,20:80]
+            generatedCube[:,:,:,0] = firstLayer[:,19:82,19:82]
 
             # Create cube
 
@@ -236,7 +236,7 @@ class wGAN():
               noise             = noise + eps*noise2
               generatedImages   = generator.predict(noise)
               newLayer          = np.reshape(generatedImages, (nSamples, 96, 96))
-              generatedCube[:,:,:,i] = np.round(newLayer[:,20:80,20:80])
+              generatedCube[:,:,:,i] = np.round(newLayer[:,19:82,19:82])
 
             # Insert channel dimension 
             generatedCube                     = generatedCube[:, np.newaxis, :, :, :]
@@ -319,10 +319,16 @@ class wGAN():
 
         plt.figure(figsize=figsize)
         for i in range(examples):
-            plt.subplot(dim[0], dim[1], i+1)
-            plt.imshow(generated_images[0, 0, :, :, i], interpolation='nearest', cmap='gray_r')
-            plt.axis('off')
-            plt.title('Layer %d' % (i+1) )
+            if i < 8:
+                plt.subplot(dim[0], dim[1], i+1)
+                plt.imshow(generated_images[0, 0, :, :, 2*i], interpolation='nearest', cmap='gray_r')
+                plt.axis('off')
+                plt.title('Layer %d' % (2*i+1) )
+            else:
+                plt.subplot(dim[0], dim[1], i+1)
+                plt.imshow(generated_images[1, 0, :, :, 2*i-16], interpolation='nearest', cmap='gray_r')
+                plt.axis('off')
+                plt.title('Layer %d' % (2*i + 1 - 8) )
         plt.tight_layout()
         plt.savefig('images/wgan_image_epoch_%d.png' % epoch)
         plt.close()
@@ -333,36 +339,6 @@ class wGAN():
         self.generator.save('models/wgan3D_gen_ep_%d.h5' % epoch)
         #self.discriminator.save('models/wgan_discriminator_epoch_%d.h5' % epoch)
 
-def buildDataset_3D(filename, datatype='uint8', nx=96, ny=96, nz=16):
-
-  X                     = pd.read_csv(filename, header=None) 
-  X                     = X.values.astype(datatype)
-  X                     = X.T
-  m                     = X.shape[0]
-  n                     = X.shape[1]
-
-  print("Number of images: " + str(m) )
-  
-  if (n != nx*ny*nz):
-    print("The number of rows is incorrect")
-    exit()
-
-  
-  
-  # Random permutation of samples
-  p         = np.random.permutation(m)
-  X         = X[p,:]
-  
-  # Reshape X and crop to 96x96 pixels
-  X_train = np.zeros((m,nx,ny,nz))
-
-  for i in range(m):
-    Xtemp = np.reshape(X[i,:],(nz,nx,ny))
-    X_train[i,:,:,:] = np.moveaxis(Xtemp, 0, -1)
-
-  print("X_train shape: " + str(X_train.shape))
-  
-  return X_train
 
 if __name__ == '__main__':
     
@@ -371,8 +347,8 @@ if __name__ == '__main__':
             custom_objects={'wassersteinLoss': wassersteinLoss})
     #filename                    = "data/train/test3D.csv"
     datatype                    = 'uint8'
-    nx                          = 61
-    ny                          = 61
+    nx                          = 64
+    ny                          = 64
     nz                          = 16
     nchan                       = 1
 
@@ -384,5 +360,5 @@ if __name__ == '__main__':
     # Initialize a class instance
     wgan                        = wGAN(nx, ny, nz, nchan)
     # Start training
-    wgan.trainGAN(generator, n_epochs = 500, batch_size = BATCH_SIZE, sample_interval = 4)
+    wgan.trainGAN(generator, n_epochs = 500, batch_size = BATCH_SIZE, sample_interval = 2)
 
