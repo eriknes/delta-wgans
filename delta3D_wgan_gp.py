@@ -144,17 +144,17 @@ class wGAN():
         #generator.add(Dense(128, input_dim=self.latent_dim, 
         #    kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         #generator.add(Activation("relu"))
-        generator.add(Dense(128*6*6*2, input_dim=self.latent_dim, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-        generator.add(Reshape((128, 6, 6, 2)))
+        generator.add(Dense(64*6*6*2, input_dim=self.latent_dim, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+        generator.add(Reshape((64, 6, 6, 2)))
 
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
         #generator.add(Dropout(0.2))
         
-        generator.add(Conv3D(256, kernel_size=(7, 7, 5), padding='same'))
+        generator.add(Conv3D(196, kernel_size=(7, 7, 5), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
-        generator.add(Conv3D(512, kernel_size=(7, 7, 5), padding='same'))
+        generator.add(Conv3D(256, kernel_size=(7, 7, 5), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
         #generator.add(UpSampling3D(size=(2, 2, 2)))
@@ -226,8 +226,8 @@ class wGAN():
             generatedCube   = np.zeros((nSamples, self.nrows,self.ncols, self.nlayers))
             generatedImages = generator.predict(noise)
 
-            firstLayer      = np.round(np.reshape(generatedImages, (nSamples, self.nrows*2, self.ncols*2)))
-            generatedCube[:,:,:,0] = firstLayer[:,0::2,0::2]
+            firstLayer      = np.round(np.reshape(generatedImages, (nSamples, 96, 96)))
+            generatedCube[:,:,:,0] = firstLayer[:,20:80,20:80]
 
             # Create cube
 
@@ -235,8 +235,8 @@ class wGAN():
               noise2            = np.random.normal(0, 1, size=[nSamples, randomDim])
               noise             = noise + eps*noise2
               generatedImages   = generator.predict(noise)
-              newLayer          = np.reshape(generatedImages, (nSamples, self.nrows*2, self.ncols*2))
-              generatedCube[:,:,:,i] = np.round(newLayer[:,0::2,0::2])
+              newLayer          = np.reshape(generatedImages, (nSamples, 96, 96))
+              generatedCube[:,:,:,i] = np.round(newLayer[:,20:80,20:80])
 
             # Insert channel dimension 
             generatedCube                     = generatedCube[:, np.newaxis, :, :, :]
@@ -371,8 +371,8 @@ if __name__ == '__main__':
             custom_objects={'wassersteinLoss': wassersteinLoss})
     #filename                    = "data/train/test3D.csv"
     datatype                    = 'uint8'
-    nx                          = 48
-    ny                          = 48
+    nx                          = 61
+    ny                          = 61
     nz                          = 16
     nchan                       = 1
 
@@ -384,5 +384,5 @@ if __name__ == '__main__':
     # Initialize a class instance
     wgan                        = wGAN(nx, ny, nz, nchan)
     # Start training
-    wgan.trainGAN(generator, n_epochs = 500, batch_size = BATCH_SIZE, sample_interval = 3)
+    wgan.trainGAN(generator, n_epochs = 500, batch_size = BATCH_SIZE, sample_interval = 4)
 
