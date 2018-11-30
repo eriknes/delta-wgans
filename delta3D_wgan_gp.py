@@ -24,7 +24,7 @@ BATCH_COUNT             = 10
 BATCH_SIZE              = 16
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
-ADAM_LR                 = .0001
+ADAM_LR                 = .0002
 ADAM_BETA_1             = 0.5
 ADAM_BETA_2             = 0.9
 
@@ -170,12 +170,12 @@ class wGAN():
 
         discriminator = Sequential()
 
-        discriminator.add(Conv3D(64, kernel_size=(5,5,5), strides=(2,2,2), input_shape=self.image_dimensions, 
+        discriminator.add(Conv3D(64, kernel_size=(7,7,5), strides=(2,2,2), input_shape=self.image_dimensions, 
             padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Conv3D(128, kernel_size=(5,5,5), strides=(2,2,2), padding="same"))
+        discriminator.add(Conv3D(128, kernel_size=(7,7,5), strides=(2,2,2), padding="same"))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
@@ -183,7 +183,7 @@ class wGAN():
         #discriminator.add(LeakyReLU(.2))
         #discriminator.add(Dropout(0.3))
 
-        discriminator.add(Conv3D(256, kernel_size=(5,5,5), strides=(2,2,2), padding="same"))
+        discriminator.add(Conv3D(256, kernel_size=(7,7,5), strides=(2,2,2), padding="same"))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
