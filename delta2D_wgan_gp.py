@@ -20,7 +20,7 @@ from functools import partial
 BATCH_SIZE              = 64
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
-LATENT_DIM              = 10
+LATENT_DIM              = 3
 
 def wassersteinLoss(y_true, y_pred):
     """Wasserstein loss for a sample batch."""
