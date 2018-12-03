@@ -20,7 +20,7 @@ from functools import partial
 BATCH_SIZE              = 64
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
-LATENT_DIM              = 3
+LATENT_DIM              = 10
 
 def wassersteinLoss(y_true, y_pred):
     """Wasserstein loss for a sample batch."""
@@ -345,7 +345,7 @@ def build_dataset( filename, nx, ny, n_test = 0):
 
 if __name__ == '__main__':
     # Load dataset
-    filename                    = "data/train/tidalData_II.csv"
+    filename                    = "data/train/braidedData_II.csv"
     (X_train, y_train) = build_dataset(filename, 96, 96, 0)
     X_train                     = X_train[:, np.newaxis, :, :]
 
