@@ -206,7 +206,7 @@ class wGAN():
 
 
         eps             = .5
-        randomDim       = 20
+        randomDim       = 12
 
         #batch_count = int(X_train.shape[0] / (self.batch_size * N_CRITIC_ITER))
         #minibatch_size = int(batch_count * N_CRITIC_ITER)
