@@ -19,12 +19,12 @@ from keras import initializers
 from functools import partial
 #import loadData3D as d3d
 
-LATENT_VEC_SIZE         = 12
+LATENT_VEC_SIZE         = 20
 BATCH_COUNT             = 10
-BATCH_SIZE              = 16
+BATCH_SIZE              = 32
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
-ADAM_LR                 = .0002
+ADAM_LR                 = .0001
 ADAM_BETA_1             = 0.5
 ADAM_BETA_2             = 0.9
 
@@ -144,8 +144,8 @@ class wGAN():
         #generator.add(Dense(128, input_dim=self.latent_dim, 
         #    kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         #generator.add(Activation("relu"))
-        generator.add(Dense(64*8*8*2, input_dim=self.latent_dim, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-        generator.add(Reshape((64, 8, 8, 2)))
+        generator.add(Dense(256*8*8*2, input_dim=self.latent_dim, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+        generator.add(Reshape((256, 8, 8, 2)))
 
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
@@ -154,7 +154,7 @@ class wGAN():
         generator.add(Conv3D(128, kernel_size=(7, 7, 5), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
-        generator.add(Conv3D(256, kernel_size=(7, 7, 5), padding='same'))
+        generator.add(Conv3D(64, kernel_size=(7, 7, 5), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
         #generator.add(UpSampling3D(size=(2, 2, 2)))
@@ -343,7 +343,7 @@ class wGAN():
 if __name__ == '__main__':
     
     # Load dataset
-    generator           = kmod.load_model('models/braided_gen_lat20.h5', 
+    generator           = kmod.load_model('models/tidal_gen_lat12.h5', 
             custom_objects={'wassersteinLoss': wassersteinLoss})
     #filename                    = "data/train/test3D.csv"
     datatype                    = 'uint8'
