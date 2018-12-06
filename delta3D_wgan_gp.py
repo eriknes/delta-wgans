@@ -144,14 +144,14 @@ class wGAN():
         #generator.add(Dense(128, input_dim=self.latent_dim, 
         #    kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         #generator.add(Activation("relu"))
-        generator.add(Dense(512*8*8*2, input_dim=self.latent_dim, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-        generator.add(Reshape((512, 8, 8, 2)))
+        generator.add(Dense(256*8*8*2, input_dim=self.latent_dim, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+        generator.add(Reshape((256, 8, 8, 2)))
 
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
         #generator.add(Dropout(0.2))
         
-        generator.add(Conv3D(128, kernel_size=(5, 5, 5), padding='same'))
+        generator.add(Conv3D(128, kernel_size=(7, 7, 5), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
         generator.add(Conv3D(64, kernel_size=(7, 7, 5), padding='same'))
