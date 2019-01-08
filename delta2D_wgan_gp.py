@@ -253,7 +253,7 @@ class wGAN():
                 noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim]).astype(np.float32)
                 g_loss = self.generator_model.train_on_batch(noise, positive_y)
 
-            	d_out = self.discriminator_model.evaluate([image_batch, noise])
+                d_out = self.discriminator_model.evaluate([image_batch, noise])
 
             gLosses.append(g_loss)
             dLosses0.append(d_loss[0])
