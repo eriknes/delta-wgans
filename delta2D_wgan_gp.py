@@ -260,7 +260,7 @@ class wGAN():
             d_out0 = K.mean(self.discriminator.predict(image_batch))
             noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim]).astype(np.float32)
             gen_batch = self.generator.predict(noise)
-            d_out1 = K.mean(self.discriminator.predict_on_batch(gen_batch))
+            d_out1 = K.mean(self.discriminator.predict(gen_batch))
 
             gLosses.append(g_loss)
             dLosses0.append(d_loss[0])
