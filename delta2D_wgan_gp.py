@@ -289,9 +289,9 @@ class wGAN():
         plt.savefig('images/training_samples_epoch_%d.png' % epoch)
         plt.close()
 
-    def saveEMdist(self, EM):
+    def saveEMdist(self, epoch, EM):
     	df = pd.DataFrame(EM)
-    	df.to_csv('EMdist.csv')
+    	df.to_csv('EMdist_%d.csv' % epoch)
 
     # Plot the loss from each batch
     def plotLoss(self, epoch, dLosses, gLosses, EM):
