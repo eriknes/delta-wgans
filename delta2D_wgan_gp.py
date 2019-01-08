@@ -213,7 +213,8 @@ class wGAN():
         dLosses0                    = []
         dLosses1 					= []
         dLosses2 					= []
-        dVal 						= []
+        dVal0 						= []
+        dVal1 						= []
         gLosses                     = []
         EMdist 						= []
 
@@ -246,7 +247,6 @@ class wGAN():
                     d_loss = self.discriminator_model.train_on_batch([image_batch, noise],
                                                                  [positive_y, negative_y, dummy_y])
 
-                    d_out = self.discriminator_model.predict_on_batch([image_batch, noise])
 
 
                 # ---------------------
@@ -255,11 +255,19 @@ class wGAN():
                 noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim]).astype(np.float32)
                 g_loss = self.generator_model.train_on_batch(noise, positive_y)
 
+            idx = np.random.randint(0, X_train.shape[0], batch_size)
+            image_batch = X_train[idx]
+            d_out0 = K.mean(self.discriminator.predict(image_batch))
+            noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim]).astype(np.float32)
+            gen_batch = self.generator.predict(noise)
+            d_out1 = K.mean(self.discriminator.predict_on_batch(gen_batch))
+
             gLosses.append(g_loss)
             dLosses0.append(d_loss[0])
             dLosses1.append(d_loss[1])
             dLosses2.append(d_loss[2])
-            dVal.append(d_out[0])
+            dVal0.append(d_out0)
+            dVal1.append(d_out1)
             EMdist.append(d_loss[0] + d_loss[1] + d_loss[2])
                 
             # Print the progress
@@ -271,7 +279,7 @@ class wGAN():
                 self.plotSampleImages(epoch, image_batch)
                 self.saveModels(epoch)
                 self.saveEMdist(epoch,EMdist)
-                self.plotDval(epoch, dVal)
+                self.plotDval(epoch, dVal0, dVal1)
                 self.plotLoss(epoch, dLosses0, dLosses1, dLosses2, gLosses, EMdist)
 
     def plotGeneratedImages(self, epoch, examples=16, dim=(4, 4), figsize=(10, 10)):
@@ -302,9 +310,10 @@ class wGAN():
     	df = pd.DataFrame(EM)
     	df.to_csv('EMdist_%d.csv' % epoch)
 
-    def plotDval(self, epoch, dVal):
+    def plotDval(self, epoch, dVal0, dVal1):
        	plt.figure(figsize=(10, 8))
-        plt.plot(dVal, label='Loss 0')
+        plt.plot(dVal0, label='Loss 0')
+        plt.plot(dVal1, label='Loss 1')
         plt.xlabel('Epoch')
         plt.ylabel('Loss')
         plt.legend()
