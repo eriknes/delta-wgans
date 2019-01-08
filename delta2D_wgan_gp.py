@@ -246,7 +246,7 @@ class wGAN():
                     d_loss = self.discriminator_model.train_on_batch([image_batch, noise],
                                                                  [positive_y, negative_y, dummy_y])
 
-                    d_out = self.discriminator_model.evaluate([image_batch, noise])
+                    d_out = self.discriminator_model.predict_on_batch([image_batch, noise])
 
 
                 # ---------------------
