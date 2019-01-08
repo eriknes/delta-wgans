@@ -259,7 +259,7 @@ class wGAN():
             dLosses0.append(d_loss[0])
             dLosses1.append(d_loss[1])
             dLosses2.append(d_loss[2])
-            dVal.append(K.mean(d_out[0]))
+            dVal.append(d_out[0])
             EMdist.append(d_loss[0] + d_loss[1] + d_loss[2])
                 
             # Print the progress
