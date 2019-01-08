@@ -206,17 +206,15 @@ class wGAN():
         negative_y  = - positive_y
         dummy_y     = np.zeros((self.batch_size, 1), dtype=np.float32)
 
-        batch_count = 20
+        batch_count = 1
         #batch_count = int(X_train.shape[0] / (self.batch_size * N_CRITIC_ITER))
         #minibatch_size = int(batch_count * N_CRITIC_ITER)
 
         dLosses0                    = []
-        dLosses1 					= []
-        dLosses2 					= []
-        dVal0 						= []
-        dVal1 						= []
+        dLosses  					= []
         gLosses                     = []
         EMdist 						= []
+        EMdist_gp  					= []
 
         for epoch in range(epochs + 1):
             # shuffle Xtrain
@@ -248,31 +246,29 @@ class wGAN():
                                                                  [positive_y, negative_y, dummy_y])
 
 
-
                 # ---------------------
                 #  2 Train Generator
                 # ---------------------
+
                 noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim]).astype(np.float32)
                 g_loss = self.generator_model.train_on_batch(noise, positive_y)
 
-            idx = np.random.randint(0, X_train.shape[0], batch_size)
+            idx 	= np.random.randint(0, X_train.shape[0], batch_size)
             image_batch = X_train[idx]
-            d_out0 = self.discriminator.predict(image_batch)
-            d_out0 = np.mean(d_out0)
-            print(d_out0.shape)
-            noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim]).astype(np.float32)
+            d_out0 	= self.discriminator.predict(image_batch)
+            d_out0 	= np.mean(d_out0)
+            #print(d_out0.shape)
+            noise 	= np.random.normal(0, 1, size=[batch_size, self.latent_dim]).astype(np.float32)
             gen_batch = self.generator.predict(noise)
-            d_out1 = self.discriminator.predict(gen_batch)
-            d_out1 = np.mean(d_out1)
-            print(d_out1.shape)
+            d_out1 	= self.discriminator.predict(gen_batch)
+            d_out1 	= np.mean(d_out1)
+            #print(d_out1.shape)
 
             gLosses.append(g_loss)
+            dLosses.append(.5*(d_loss[0]+d_loss[1]))
             dLosses0.append(d_loss[0])
-            dLosses1.append(d_loss[1])
-            dLosses2.append(d_loss[2])
-            dVal0.append(d_out0)
-            dVal1.append(d_out1)
-            EMdist.append(d_loss[0] + d_loss[1] + d_loss[2])
+            EMdist.append(d_loss[0] + d_loss[1])
+            EMdist_gp.append(d_loss[0] + d_loss[1] + d_loss[2])
                 
             # Print the progress
             print ("Epoch %d, [D loss: %f] [G loss: %f]" % (epoch, .5*(d_loss[0] + d_loss[1]), g_loss))
@@ -282,9 +278,8 @@ class wGAN():
                 self.plotGeneratedImages(epoch)
                 self.plotSampleImages(epoch, image_batch)
                 self.saveModels(epoch)
-                self.saveEMdist(epoch,EMdist)
-                self.plotDval(epoch, dVal0, dVal1)
-                self.plotLoss(epoch, dLosses0, dLosses1, dLosses2, gLosses, EMdist)
+                #self.saveEMdist(epoch,EMdist, EMdist_gp)
+                self.plotLoss(epoch, dLosses, gLosses, dLosses0, EMdist, EMdist_gp)
 
     def plotGeneratedImages(self, epoch, examples=16, dim=(4, 4), figsize=(10, 10)):
         noise = np.random.normal(0, 1, size=[examples, self.latent_dim])
@@ -310,26 +305,11 @@ class wGAN():
         plt.savefig('images/training_samples_epoch_%d.png' % epoch)
         plt.close()
 
-    def saveEMdist(self, epoch, EM):
-    	df = pd.DataFrame(EM)
-    	df.to_csv('EMdist_%d.csv' % epoch)
-
-    def plotDval(self, epoch, dVal0, dVal1):
-       	plt.figure(figsize=(10, 8))
-        plt.plot(dVal0, label='Loss 0')
-        plt.plot(dVal1, label='Loss 1')
-        plt.xlabel('Epoch')
-        plt.ylabel('Loss')
-        plt.legend()
-        plt.savefig('images/dVal_epoch_%d.png' % epoch)
-        plt.close()
 
     # Plot the loss from each batch
-    def plotLoss(self, epoch, dLosses0, dLosses1, dLosses2, gLosses, EM):
+    def plotLoss(self, epoch, dLosses, gLosses, dLosses0, EM, EM_gp):
         plt.figure(figsize=(10, 8))
-        plt.plot(dLosses0, label='Loss 0')
-        plt.plot(dLosses1, label='Loss 1')
-        plt.plot(dLosses2, label='Loss 2s')
+        plt.plot(dLosses, label='Discriminative Loss')
         plt.plot(gLosses, label='Generative loss')
         plt.xlabel('Epoch')
         plt.ylabel('Loss')
@@ -344,6 +324,15 @@ class wGAN():
         plt.legend()
         plt.savefig('images/wgan_EMdist_epoch_%d.png' % epoch)
         plt.close()
+
+    	df = pd.DataFrame(dLosses0)
+    	df.to_csv('models/dLosses0.csv')
+
+    	df = pd.DataFrame(EM)
+    	df.to_csv('models/EM.csv')
+
+    	df = pd.DataFrame(EM_gp)
+    	df.to_csv('models/EM_gp.csv')
 
 
     # Save the generator and discriminator networks (and weights) for later use
@@ -399,4 +388,4 @@ if __name__ == '__main__':
     X_train                     = X_train[:, np.newaxis, :, :]
 
     wgan = wGAN(X_train)
-    wgan.trainGAN(X_train, epochs = 500, batch_size = BATCH_SIZE, sample_interval = 10)
+    wgan.trainGAN(X_train, epochs = 500, batch_size = BATCH_SIZE, sample_interval = 50)
