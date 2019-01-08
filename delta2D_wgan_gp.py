@@ -257,11 +257,12 @@ class wGAN():
 
             idx = np.random.randint(0, X_train.shape[0], batch_size)
             image_batch = X_train[idx]
-            d_out0 = K.mean(positive_y*self.discriminator.predict(image_batch).astype(np.float32))
+            d_out0 = K.mean(self.discriminator.predict(image_batch))
             print(d_out0.shape)
             noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim]).astype(np.float32)
             gen_batch = self.generator.predict(noise)
-            d_out1 = K.mean(positive_y*self.discriminator.predict(gen_batch).astype(np.float32))
+            d_out1 = self.discriminator.predict(gen_batch).astype(np.float32)
+            print(d_out1.shape)
 
             gLosses.append(g_loss)
             dLosses0.append(d_loss[0])
