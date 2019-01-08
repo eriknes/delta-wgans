@@ -302,7 +302,7 @@ class wGAN():
     	df = pd.DataFrame(EM)
     	df.to_csv('EMdist_%d.csv' % epoch)
 
-    def plotDVal(self, epoch, dVal):
+    def plotDval(self, epoch, dVal):
        	plt.figure(figsize=(10, 8))
         plt.plot(dVal, label='Loss 0')
         plt.xlabel('Epoch')
