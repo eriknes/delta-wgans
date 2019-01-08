@@ -65,7 +65,7 @@ class wGAN():
         self.latent_dim     = LATENT_DIM
 
         # Adam gradient descent
-        optim               = Adam(lr = 0.0005, beta_1 = 0.5, beta_2 = 0.9)
+        optim               = Adam(lr = 0.0002, beta_1 = 0.5, beta_2 = 0.99)
         #optim               = Adam(lr = 0.0001, beta_1 = 0.5)
 
         # Build the generator
@@ -378,4 +378,4 @@ if __name__ == '__main__':
     X_train                     = X_train[:, np.newaxis, :, :]
 
     wgan = wGAN(X_train)
-    wgan.trainGAN(X_train, epochs = 500, batch_size = BATCH_SIZE, sample_interval = 50)
+    wgan.trainGAN(X_train, epochs = 5000, batch_size = BATCH_SIZE, sample_interval = 100)
