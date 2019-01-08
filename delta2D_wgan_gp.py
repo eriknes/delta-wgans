@@ -325,14 +325,14 @@ class wGAN():
         plt.savefig('images/wgan_EMdist_epoch_%d.png' % epoch)
         plt.close()
 
-    	df = pd.DataFrame(dLosses0)
-    	df.to_csv('models/dLosses0.csv')
+        df = pd.DataFrame(dLosses0)
+        df.to_csv('models/dLosses0.csv')
 
-    	df = pd.DataFrame(EM)
-    	df.to_csv('models/EM.csv')
+        df = pd.DataFrame(EM)
+        df.to_csv('models/EM.csv')
 
-    	df = pd.DataFrame(EM_gp)
-    	df.to_csv('models/EM_gp.csv')
+        df = pd.DataFrame(EM_gp)
+        df.to_csv('models/EM_gp.csv')
 
 
     # Save the generator and discriminator networks (and weights) for later use
