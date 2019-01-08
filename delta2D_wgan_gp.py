@@ -65,7 +65,7 @@ class wGAN():
         self.latent_dim     = LATENT_DIM
 
         # Adam gradient descent
-        optim               = Adam(lr = 0.00005, beta_1 = 0, beta_2 = 0.9)
+        optim               = Adam(lr = 0.0005, beta_1 = 0.5, beta_2 = 0.9)
         #optim               = Adam(lr = 0.0001, beta_1 = 0.5)
 
         # Build the generator
@@ -253,16 +253,6 @@ class wGAN():
                 noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim]).astype(np.float32)
                 g_loss = self.generator_model.train_on_batch(noise, positive_y)
 
-            idx 	= np.random.randint(0, X_train.shape[0], batch_size)
-            image_batch = X_train[idx]
-            d_out0 	= self.discriminator.predict(image_batch)
-            d_out0 	= np.mean(d_out0)
-            #print(d_out0.shape)
-            noise 	= np.random.normal(0, 1, size=[batch_size, self.latent_dim]).astype(np.float32)
-            gen_batch = self.generator.predict(noise)
-            d_out1 	= self.discriminator.predict(gen_batch)
-            d_out1 	= np.mean(d_out1)
-            #print(d_out1.shape)
 
             gLosses.append(g_loss)
             dLosses.append(.5*(d_loss[0]+d_loss[1]))
