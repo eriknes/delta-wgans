@@ -326,6 +326,9 @@ class wGAN():
         plt.savefig('images/wgan_EMdist_epoch_%d.png' % epoch)
         plt.close()
 
+        df = pd.DataFrame(gLosses)
+        df.to_csv('models/gLosses.csv')
+
         df = pd.DataFrame(dLosses0)
         df.to_csv('models/dLosses0.csv')
 
