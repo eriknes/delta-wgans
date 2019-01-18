@@ -131,12 +131,16 @@ class wGAN():
     def buildGenerator(self):
 
         generator = Sequential()
-        generator.add(Dense(64*12*12, input_dim=self.latent_dim, 
+        generator.add(Dense(128*6*6, input_dim=self.latent_dim, 
             kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         #generator.add(LeakyReLU(.2))
         #generator.add(Activation("relu"))
         #generator.add(Dropout(0.2))
-        generator.add(Reshape((64, 12, 12)))
+        generator.add(Reshape((128, 6, 6)))
+        generator.add(Activation("relu"))
+
+        generator.add(UpSampling2D(size=(2, 2)))
+        generator.add(Conv2D(64, kernel_size=(5,5), padding='same'))
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
@@ -148,7 +152,7 @@ class wGAN():
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(8, kernel_size=(5, 5), padding='same'))
+        generator.add(Conv2D(16, kernel_size=(5, 5), padding='same'))
         generator.add(Activation("relu"))
         
         generator.add(Conv2D(self.nchan, kernel_size=(5, 5), padding='same', 
@@ -162,7 +166,7 @@ class wGAN():
 
         discriminator = Sequential()
 
-        discriminator.add(Convolution2D(8, kernel_size=(5,5), strides=(2,2), input_shape=self.image_dimensions, 
+        discriminator.add(Convolution2D(16, kernel_size=(5,5), strides=(2,2), input_shape=self.image_dimensions, 
             padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
@@ -183,6 +187,12 @@ class wGAN():
         #discriminator.add(BatchNormalization(momentum=0.7))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
+
+        discriminator.add(Convolution2D(128, kernel_size=(5,5), strides=(2,2), padding="same"))
+        #discriminator.add(BatchNormalization(momentum=0.7))
+        discriminator.add(LeakyReLU(.2))
+        discriminator.add(Dropout(0.3))
+
         discriminator.add(Flatten())
 
         #discriminator.add(Dense(256, kernel_initializer='he_normal'))
@@ -261,7 +271,8 @@ class wGAN():
             EMdist_gp.append(d_loss[0] + d_loss[1] + d_loss[2])
                 
             # Print the progress
-            print ("Epoch %d, [D loss: %f] [G loss: %f]" % (epoch, .5*(d_loss[0] + d_loss[1]), g_loss))
+            if epoch % sample_interval == 0:
+                print ("Epoch %d, [D loss: %f] [G loss: %f]" % (epoch, .5*(d_loss[0] + d_loss[1]), g_loss))
                     
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
@@ -342,7 +353,7 @@ def build_dataset( filename, nx, ny, n_test = 0):
 
     X                     = load_file(filename)
 
-    m = X.shape[0]
+    m 	= X.shape[0]
     print("Number of images in dataset: " + str(m) )
 
     X = X.T
