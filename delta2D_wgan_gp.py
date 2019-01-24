@@ -131,28 +131,28 @@ class wGAN():
     def buildGenerator(self):
 
         generator = Sequential()
-        generator.add(Dense(32*6*6, input_dim=self.latent_dim, 
+        generator.add(Dense(512*6*6, input_dim=self.latent_dim, 
             kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         #generator.add(LeakyReLU(.2))
         #generator.add(Activation("relu"))
         #generator.add(Dropout(0.2))
-        generator.add(Reshape((32, 6, 6)))
+        generator.add(Reshape((512, 6, 6)))
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(64, kernel_size=(5,5), padding='same'))
+        generator.add(Conv2D(512, kernel_size=(5,5), padding='same'))
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(128, kernel_size=(5,5), padding='same'))
+        generator.add(Conv2D(256, kernel_size=(5,5), padding='same'))
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(256, kernel_size=(5, 5), padding='same'))
+        generator.add(Conv2D(128, kernel_size=(5, 5), padding='same'))
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
-        generator.add(Conv2D(256, kernel_size=(5, 5), padding='same'))
+        generator.add(Conv2D(64, kernel_size=(5, 5), padding='same'))
         generator.add(Activation("relu"))
         
         generator.add(Conv2D(self.nchan, kernel_size=(5, 5), padding='same', 
@@ -166,7 +166,7 @@ class wGAN():
 
         discriminator = Sequential()
 
-        discriminator.add(Convolution2D(32, kernel_size=(5,5), strides=(2,2), input_shape=self.image_dimensions, 
+        discriminator.add(Convolution2D(64, kernel_size=(5,5), strides=(2,2), input_shape=self.image_dimensions, 
             padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
@@ -388,7 +388,7 @@ def build_dataset( filename, nx, ny, n_test = 0):
 if __name__ == '__main__':
     # Load dataset
     #filename                    = "data/train/tidalData_II.csv"
-    filename                    = "data/train/tidalData_II.csv"
+    filename                    = "data/train/braidedData_II.csv"
     (X_train, y_train) = build_dataset(filename, 96, 96, 0)
     X_train                     = X_train[:, np.newaxis, :, :]
 
