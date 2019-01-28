@@ -246,7 +246,7 @@ class wGAN():
             dLosses.append(-d_loss[0] - d_loss[1] - d_loss[2])
                 
             # Print the progress
-            if epoch % sample_interval == 0:
+            if epoch % (sample_interval/10) == 0:
                 print ("Iteration %d, [D loss: %f] [G loss: %f]" % (epoch, .5*(d_loss[0] + d_loss[1]), g_loss))
                     
             # If at save interval => save generated image samples
