@@ -17,7 +17,7 @@ from keras.optimizers import RMSprop, Adam
 from keras import initializers
 from functools import partial
 
-BATCH_SIZE              = 32
+BATCH_SIZE              = 64
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
 
@@ -61,11 +61,11 @@ class wGAN():
         self.image_dimensions       = (self.nchan, self.nrows, self.ncols)
         
         self.batch_size             = BATCH_SIZE
-        self.latent_dim             = 20
+        self.latent_dim             = 16
 
         # Adam gradient descent
-        #optim               = Adam(lr = 0.0001, beta_1 = 0.5, beta_2 = 0.9)
-        optim               = Adam(lr = 0.0001, beta_1 = 0.5)
+        #optim               = Adam(lr = 0.0001, beta_1 = 0.5, beta_2 = 0.99)
+        optim               = Adam(lr = 0.0002, beta_1 = 0.5, beta_2 = 0.99)
 
         # Build the generator
         self.generator      = self.buildGenerator()
@@ -268,7 +268,7 @@ class wGAN():
                 plt.axis('off')
                 plt.title("Channel " + str(j))
         plt.tight_layout()
-        plt.savefig('images/wgan_image_epoch_%d.png' % epoch)
+        plt.savefig('images/wgan_image_iter_%d.png' % epoch)
         plt.close()
 
     def plotSampleImages(self, epoch, images, examples=4, dim=(4, 2), figsize=(10, 10)):
@@ -329,8 +329,7 @@ def build_dataset( filename, nx, ny):
     X_new       = np.zeros((m,nchan-1,nx,ny))
 
     for i in range(m):
-        Xtemp1 = np.reshape(X[:,i],(101,101))
-        Xtemp1 = Xtemp1[2:2+nx,2:2+ny]
+        Xtemp1 = np.reshape(X[:,i],(nx,ny)) 
         for j in range(1,nchan):
             Xtemp2              = np.zeros(Xtemp1.shape)
             Xtemp2[np.where(Xtemp1 == j)] = 1
@@ -349,7 +348,7 @@ def build_dataset( filename, nx, ny):
 
 if __name__ == '__main__':
     # Load dataset
-    filename                    = "data/train/braidedData.csv"
+    filename                    = "data/train/braided3FaciesData.csv"
     X_train                     = build_dataset(filename, 96, 96)
     #X_train                     = X_train[:, np.newaxis, :, :]
 
