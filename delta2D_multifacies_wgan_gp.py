@@ -17,7 +17,7 @@ from keras.optimizers import RMSprop, Adam
 from keras import initializers
 from functools import partial
 
-BATCH_SIZE              = 32
+BATCH_SIZE              = 64
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
 
@@ -326,7 +326,7 @@ def build_dataset( filename, nx, ny):
     print("Number of facies in dataset: " + str(nchan-1))
 
     # Reshape X and crop to 96x96 pixels
-    X_new       = np.zeros((m,nchan-1,nx,ny))
+    X_new       = np.zeros((m,nchan-1,nx,ny), dtype=uint8)
 
     for i in range(m):
         Xtemp1 = np.reshape(X[:,i],(nx,ny)) 
