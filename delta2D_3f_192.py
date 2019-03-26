@@ -113,12 +113,12 @@ class wGAN():
     def buildGenerator(self):
 
         generator = Sequential()
-        generator.add(Dense(512*12*12, input_dim=self.latent_dim, 
+        generator.add(Dense(256*12*12, input_dim=self.latent_dim, 
             kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         #generator.add(LeakyReLU(.2))
         generator.add(Activation("relu"))
         #generator.add(Dropout(0.2))
-        generator.add(Reshape((512, 12, 12)))
+        generator.add(Reshape((256, 12, 12)))
         generator.add(Activation("relu"))
 
         generator.add(UpSampling2D(size=(2, 2)))
@@ -148,7 +148,7 @@ class wGAN():
 
         discriminator = Sequential()
 
-        discriminator.add(Convolution2D(512, kernel_size=(5,5), strides=(2,2), input_shape=self.image_dimensions, 
+        discriminator.add(Convolution2D(256, kernel_size=(5,5), strides=(2,2), input_shape=self.image_dimensions, 
             padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
