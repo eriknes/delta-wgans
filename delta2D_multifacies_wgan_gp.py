@@ -22,27 +22,21 @@ GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
 
 def wassersteinLoss(y_true, y_pred):
-    """Wasserstein loss for a sample batch."""
+    """Wasserstein loss"""
     return K.mean(y_true * y_pred)
 
 def gradientPenaltyLoss(y_true, y_pred, averaged_samples, gradient_penalty_weight):
-    """Calculates the gradient penalty loss for a batch of "averaged" samples."""
+
     gradients = K.gradients(y_pred, averaged_samples)[0]
-    # compute the euclidean norm by squaring ...
     gradients_sqr = K.square(gradients)
-    #   ... summing over the rows ...
     gradients_sqr_sum = K.sum(gradients_sqr,
                               axis=np.arange(1, len(gradients_sqr.shape)))
-    #   ... and sqrt
     gradient_l2_norm = K.sqrt(gradients_sqr_sum)
-    # compute lambda * (1 - ||grad||)^2 still for each single sample
     gradient_penalty = gradient_penalty_weight * K.square(1 - gradient_l2_norm)
-    # return the mean as loss over all the batch samples
+    # mean loss over samples
     return K.mean(gradient_penalty)
 
 class RandomWeightedAverage(_Merge):
-    """Takes a randomly-weighted average of two tensors. In geometric terms, this outputs a random point on the line
-    between each pair of input points. Inheritance from _Merge """
 
     def _merge_function(self, inputs):
         weights = K.random_uniform((BATCH_SIZE, 1, 1, 1))
@@ -50,10 +44,9 @@ class RandomWeightedAverage(_Merge):
 
 class wGAN():
     def __init__(self, X_train):
-        # Deterministic output.
+
         #np.random.seed(1)
 
-        # Theano uses ordering channels, rows, cols
         K.set_image_dim_ordering('th')
         self.nrows                  = X_train.shape[2]
         self.ncols                  = X_train.shape[3]
@@ -76,8 +69,6 @@ class wGAN():
             layer.trainable = False
         self.discriminator.trainable = False
 
-        # The generator takes noise as input and generated imgs
-
         generator_input     = Input(shape=(self.latent_dim,))
         generator_layers    = self.generator(generator_input)
         discriminator_layers= self.discriminator(generator_layers)
@@ -99,29 +90,21 @@ class wGAN():
         discriminator_output_from_generator = self.discriminator(generated_samples_for_discriminator)
         discriminator_output_from_real_samples = self.discriminator(real_samples)
 
-        # We also need to generate weighted-averages of real and generated samples, to use for the gradient norm penalty.
+        # average of real and GAN
         averaged_samples = RandomWeightedAverage()([ real_samples, generated_samples_for_discriminator])
 
-        # We then run these samples through the discriminator as well. Note that we never really use the discriminator
-        # output for these samples - we're only running them to get the gradient norm for the gradient penalty loss.
         averaged_samples_out = self.discriminator(averaged_samples)
 
-        # The gradient penalty loss function requires the input averaged samples to get gradients. However,
-        # Keras loss functions can only have two arguments, y_true and y_pred. We get around this by making a partial()
-        # of the function with the averaged samples here.
         partial_gp_loss = partial(gradientPenaltyLoss,
                                   averaged_samples=averaged_samples,
                                   gradient_penalty_weight=GRADIENT_PENALTY_WEIGHT)
-        partial_gp_loss.__name__ = 'gradient_penalty'  # Functions need names or Keras will throw an error
+        partial_gp_loss.__name__ = 'gradient_penalty'  
 
-        # If we don't concatenate the real and generated samples, however, we get three outputs: One of the generated
-        # samples, one of the real samples, and one of the averaged samples, all of size BATCH_SIZE. This works neatly!
         self.discriminator_model = Model(inputs=[real_samples, generator_input_for_discriminator],
                                     outputs=[discriminator_output_from_real_samples,
                                              discriminator_output_from_generator,
                                              averaged_samples_out])
-        # We use the Adam paramaters from Gulrajani et al. We use the Wasserstein loss for both the real and generated
-        # samples, and the gradient penalty loss for the averaged samples.
+
         self.discriminator_model.compile(optimizer= optim,
                                     loss=[wassersteinLoss,
                                           wassersteinLoss,
@@ -192,17 +175,12 @@ class wGAN():
 
     def trainGAN(self, X_train, epochs = 10, batch_size = 64, sample_interval = 1):
 
-        
-        # We make three label vectors for training. positive_y is the label vector for real samples, with value 1.
-        # negative_y is the label vector for generated samples, with value -1. The dummy_y vector is passed to the
-        # gradient_penalty loss function and is not used.
+
         positive_y  = np.ones((self.batch_size, 1), dtype=np.float32)
         negative_y  = - positive_y
         dummy_y     = np.zeros((self.batch_size, 1), dtype=np.float32)
 
         batch_count = 1
-        #batch_count = int(X_train.shape[0] / (self.batch_size * N_CRITIC_ITER))
-        #minibatch_size = int(batch_count * N_CRITIC_ITER)
 
         dLosses                     = []
         gLosses                     = []
@@ -210,12 +188,8 @@ class wGAN():
         for epoch in range(epochs + 1):
             # shuffle Xtrain
             np.random.shuffle(X_train)
-            #print("Epoch: ", epoch)
-            #print("Number of batches: ", int(X_train.shape[0] // BATCH_SIZE))
 
             for i in range(batch_count):
-
-                #discriminator_minibatches = X_train[i * minibatch_size:(i + 1) * minibatch_size]
 
                 for j in range(N_CRITIC_ITER):
 
@@ -295,7 +269,7 @@ class wGAN():
         plt.savefig('images/wgan_loss_iter_%d.png' % epoch)
         plt.close()
 
-    # Save the generator and discriminator networks (and weights) for later use
+
     def saveModels(self, epoch):
         self.generator.save('models/generator_iter_%d.h5' % epoch)
         self.discriminator.save('models/discriminator_iter_%d.h5' % epoch)
@@ -334,12 +308,6 @@ def build_dataset( filename, nx, ny):
             Xtemp2              = np.zeros(Xtemp1.shape)
             Xtemp2[np.where(Xtemp1 == j)] = 1
             X_new[i,j-1,:,:]      = Xtemp2
-
-    #X_train = X_new[0:m-n_test,:,:]
-    #Y_train = Y[0:m-n_test]
-
-    #X_test  = X_new[m-n_test:m,:,:]
-    #Y_test  = Y[m-n_test:m]
 
     print("X_train shape: " + str(X_new.shape))
     #print("Y_train shape: " + str(Y_train.shape))
