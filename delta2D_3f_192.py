@@ -17,7 +17,7 @@ from keras.optimizers import RMSprop, Adam
 from keras import initializers
 from functools import partial
 
-BATCH_SIZE              = 64
+BATCH_SIZE              = 36
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
 
@@ -326,7 +326,7 @@ def build_dataset( filename, nx, ny):
 
 if __name__ == '__main__':
     # Load dataset
-    filename                    = "data/train/braided_3F_192px.csv"
+    filename                    = "data/train/data_3F.csv"
     X_train                     = build_dataset(filename, 192, 192)
     #X_train                     = X_train[:, np.newaxis, :, :]
 
