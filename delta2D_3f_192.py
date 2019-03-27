@@ -326,7 +326,7 @@ def build_dataset( filename, nx, ny):
 
 if __name__ == '__main__':
     # Load dataset
-    filename                    = "data/train/braided_3F.csv"
+    filename                    = "data/train/braided_3F_192px.csv"
     X_train                     = build_dataset(filename, 192, 192)
     #X_train                     = X_train[:, np.newaxis, :, :]
 
