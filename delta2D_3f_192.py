@@ -326,9 +326,9 @@ def build_dataset( filename, nx, ny):
 
 if __name__ == '__main__':
     # Load dataset
-    filename                    = "data/train/entireDeltas_3F.csv"
+    filename                    = "data/train/braided_3F.csv"
     X_train                     = build_dataset(filename, 192, 192)
     #X_train                     = X_train[:, np.newaxis, :, :]
 
     wgan = wGAN(X_train)
-    wgan.trainGAN(X_train, epochs = 15000, batch_size = BATCH_SIZE, sample_interval = 200)
+    wgan.trainGAN(X_train, epochs = 15000, batch_size = BATCH_SIZE, sample_interval = 100)
