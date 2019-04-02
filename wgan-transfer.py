@@ -84,7 +84,7 @@ class wGAN():
         self.discriminator.trainable = False
 
         # Keep the parameters in the first 4 layers
-        for layer in self.generator.layers[:4]
+        for layer in self.generator.layers[:4]:
             layer.trainable = False
 
         generator_input     = Input(shape=(self.latent_dim,))
