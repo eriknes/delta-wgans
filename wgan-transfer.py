@@ -232,7 +232,7 @@ def createImageFaciesChannels(X, nchan):
 
 # Read csv file
 def load_file(fname):
-     X = pd.read_csv(fname, header=None, dtype='int8', nrows=15000)
+     X = pd.read_csv(fname, header=None, dtype='int8', nrows=200)
      X = X.values
      #X = X.astype(dtype='int8')
      return X
