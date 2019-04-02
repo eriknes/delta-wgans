@@ -86,8 +86,10 @@ class wGAN():
         self.discriminator.trainable = False
 
         # Keep the parameters in the first 4 layers
-        for layer in self.generator.layers[:15]:
+        for layer in self.generator.layers[:12]:
             layer.trainable = False
+        for layer in self.generator.layers[12:]:
+            layer.trainable = True
         self.generator.trainable = True
 
         self.generator.summary()
