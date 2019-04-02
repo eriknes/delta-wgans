@@ -86,8 +86,9 @@ class wGAN():
         self.discriminator.trainable = False
 
         # Keep the parameters in the first 4 layers
-        for layer in self.generator.layers[:5]:
+        for layer in self.generator.layers[:15]:
             layer.trainable = False
+        self.generator.trainable = True
 
         self.generator.summary()
 
@@ -98,7 +99,7 @@ class wGAN():
         self.generator_model.compile(optimizer = optim, loss = wassersteinLoss)
 
         # After generator model compilation, we make discriminator layers 4 - > trainable.
-        for layer in self.discriminator.layers[5:]:
+        for layer in self.discriminator.layers[15:]:
             layer.trainable = True
         for layer in self.generator.layers:
             layer.trainable = False
@@ -210,8 +211,8 @@ class wGAN():
 
     # Plot the loss from each batch
     def saveLoss(self, it, dLosses, gLosses):
-        discFileName = "samples/disc_loss_it_{0}.csv".format(it)
-        genFileName="samples/gen_loss_it_{0}.csv".format(it)
+        discFileName = "images/disc_loss_it_{0}.csv".format(it)
+        genFileName="images/gen_loss_it_{0}.csv".format(it)
         np.savetxt(discFileName, dLosses, delimiter=",")
         np.savetxt(genFileName, gLosses, delimiter=",")
 
