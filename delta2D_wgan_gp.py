@@ -23,28 +23,23 @@ N_CRITIC_ITER           = 5
 LATENT_DIM              = 12
 
 def wassersteinLoss(y_true, y_pred):
-    """Wasserstein loss for a sample batch."""
     return K.mean(y_true * y_pred)
 
 def gradientPenaltyLoss(y_true, y_pred, averaged_samples, gradient_penalty_weight):
-    """Calculates the gradient penalty loss for a batch of "averaged" samples."""
     gradients = K.gradients(y_pred, averaged_samples)[0]
-    # compute the euclidean norm by squaring ...
+    #  euclidean norm 
     gradients_sqr = K.square(gradients)
-    #   ... summing over the rows ...
+    #   sum over  rows 
     gradients_sqr_sum = K.sum(gradients_sqr,
                               axis=np.arange(1, len(gradients_sqr.shape)))
-    #   ... and sqrt
+
     gradient_l2_norm = K.sqrt(gradients_sqr_sum)
-    # compute lambda * (1 - ||grad||)^2 still for each single sample
+    # lambda * (1 - ||grad||)^2 
     gradient_penalty = gradient_penalty_weight * K.square(1 - gradient_l2_norm)
-    # return the mean as loss over all the batch samples
+    #  mean loss over all the batch samples
     return K.mean(gradient_penalty)
 
 class RandomWeightedAverage(_Merge):
-    """Takes a randomly-weighted average of two tensors. In geometric terms, this outputs a random point on the line
-    between each pair of input points. Inheritance from _Merge """
-
     def _merge_function(self, inputs):
         weights = K.random_uniform((BATCH_SIZE, 1, 1, 1))
         return (weights * inputs[0]) + ((1 - weights) * inputs[1])
@@ -77,8 +72,6 @@ class wGAN():
             layer.trainable = False
         self.discriminator.trainable = False
 
-        # The generator takes noise as input and generated imgs
-
         generator_input     = Input(shape=(self.latent_dim,))
         generator_layers    = self.generator(generator_input)
         discriminator_layers= self.discriminator(generator_layers)
@@ -100,29 +93,20 @@ class wGAN():
         discriminator_output_from_generator = self.discriminator(generated_samples_for_discriminator)
         discriminator_output_from_real_samples = self.discriminator(real_samples)
 
-        # We also need to generate weighted-averages of real and generated samples, to use for the gradient norm penalty.
         averaged_samples = RandomWeightedAverage()([ real_samples, generated_samples_for_discriminator])
 
-        # We then run these samples through the discriminator as well. Note that we never really use the discriminator
-        # output for these samples - we're only running them to get the gradient norm for the gradient penalty loss.
         averaged_samples_out = self.discriminator(averaged_samples)
 
-        # The gradient penalty loss function requires the input averaged samples to get gradients. However,
-        # Keras loss functions can only have two arguments, y_true and y_pred. We get around this by making a partial()
-        # of the function with the averaged samples here.
         partial_gp_loss = partial(gradientPenaltyLoss,
                                   averaged_samples=averaged_samples,
                                   gradient_penalty_weight=GRADIENT_PENALTY_WEIGHT)
-        partial_gp_loss.__name__ = 'gradient_penalty'  # Functions need names or Keras will throw an error
+        partial_gp_loss.__name__ = 'gradient_penalty'  
 
-        # If we don't concatenate the real and generated samples, however, we get three outputs: One of the generated
-        # samples, one of the real samples, and one of the averaged samples, all of size BATCH_SIZE. This works neatly!
         self.discriminator_model = Model(inputs=[real_samples, generator_input_for_discriminator],
                                     outputs=[discriminator_output_from_real_samples,
                                              discriminator_output_from_generator,
                                              averaged_samples_out])
-        # We use the Adam paramaters from Gulrajani et al. We use the Wasserstein loss for both the real and generated
-        # samples, and the gradient penalty loss for the averaged samples.
+
         self.discriminator_model.compile(optimizer= optim,
                                     loss=[wassersteinLoss,
                                           wassersteinLoss,
@@ -133,9 +117,7 @@ class wGAN():
         generator = Sequential()
         generator.add(Dense(256*12*12, input_dim=self.latent_dim, 
             kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-        #generator.add(LeakyReLU(.2))
-        #generator.add(Activation("relu"))
-        #generator.add(Dropout(0.2))
+
         generator.add(Reshape((256, 12, 12)))
         generator.add(Activation("relu"))
 
@@ -185,11 +167,6 @@ class wGAN():
         discriminator.add(Dropout(0.3))
 
         discriminator.add(Flatten())
-
-        #discriminator.add(Dense(256, kernel_initializer='he_normal'))
-        #discriminator.add(BatchNormalization(momentum=0.7))
-        #discriminator.add(LeakyReLU())
-        #discriminator.add(Dropout(0.2))
         
         discriminator.add(Dense(1, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
 
@@ -199,17 +176,13 @@ class wGAN():
 
     def trainGAN(self, X_train, epochs = 10, batch_size = 64, sample_interval = 1):
 
-        
-        # We make three label vectors for training. positive_y is the label vector for real samples, with value 1.
-        # negative_y is the label vector for generated samples, with value -1. The dummy_y vector is passed to the
-        # gradient_penalty loss function and is not used.
+
         positive_y  = np.ones((self.batch_size, 1), dtype=np.float32)
         negative_y  = - positive_y
         dummy_y     = np.zeros((self.batch_size, 1), dtype=np.float32)
 
-        batch_count = 1
-        #batch_count = int(X_train.shape[0] / (self.batch_size * N_CRITIC_ITER))
-        #minibatch_size = int(batch_count * N_CRITIC_ITER)
+        #batch_count = 1
+
 
         dLosses0                    = []
         dLosses  					= []
@@ -223,36 +196,36 @@ class wGAN():
             #print("Epoch: ", epoch)
             #print("Number of batches: ", int(X_train.shape[0] // BATCH_SIZE))
 
-            for i in range(batch_count):
+            #for i in range(batch_count):
 
-                #discriminator_minibatches = X_train[i * minibatch_size:(i + 1) * minibatch_size]
+            #discriminator_minibatches = X_train[i * minibatch_size:(i + 1) * minibatch_size]
 
-                for j in range(N_CRITIC_ITER):
-
-                    # ---------------------
-                    #  1 Train Discriminator
-                    # ---------------------
-
-                    # Select a random batch of images
-                    idx = np.random.randint(0, X_train.shape[0], batch_size)
-                    image_batch = X_train[idx]
-                    #image_batch = discriminator_minibatches[j*batch_size:(j+1)*batch_size]
-
-                    # Sample noise as generator input
-                    noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim]).astype(np.float32)
-
-                    # Generate a batch of new images
-                    #gen_images = self.generator.predict(noise)
-                    d_loss = self.discriminator_model.train_on_batch([image_batch, noise],
-                                                                 [positive_y, negative_y, dummy_y])
-
+            for j in range(N_CRITIC_ITER):
 
                 # ---------------------
-                #  2 Train Generator
+                #  1 Train Discriminator
                 # ---------------------
 
+                # Select a random batch of images
+                idx = np.random.randint(0, X_train.shape[0], batch_size)
+                image_batch = X_train[idx]
+                #image_batch = discriminator_minibatches[j*batch_size:(j+1)*batch_size]
+
+                # Sample noise as generator input
                 noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim]).astype(np.float32)
-                g_loss = self.generator_model.train_on_batch(noise, positive_y)
+
+                # Generate a batch of new images
+                #gen_images = self.generator.predict(noise)
+                d_loss = self.discriminator_model.train_on_batch([image_batch, noise],
+                                                             [positive_y, negative_y, dummy_y])
+
+
+            # ---------------------
+            #  2 Train Generator
+            # ---------------------
+
+            noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim]).astype(np.float32)
+            g_loss = self.generator_model.train_on_batch(noise, positive_y)
 
 
             gLosses.append(g_loss)
