@@ -291,7 +291,7 @@ if __name__ == '__main__':
     discriminator_pretrained = sys.argv[5]
     #max_filters = int(sys.argv[4])
     #kernel_size = int(sys.argv[5])
-    #num_pix     = int(sys.argv[6])
+    num_pix     = int(sys.argv[6])
 
     # Check existence of paths and training data
     if not os.path.exists(input_path):
