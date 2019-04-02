@@ -86,8 +86,10 @@ class wGAN():
         self.discriminator.trainable = False
 
         # Keep the parameters in the first 4 layers
-        for layer in self.generator.layers[:4]:
+        for layer in self.generator.layers[:5]:
             layer.trainable = False
+
+        self.generator.summary()
 
         generator_input     = Input(shape=(self.latent_dim,))
         generator_layers    = self.generator(generator_input)
@@ -96,7 +98,7 @@ class wGAN():
         self.generator_model.compile(optimizer = optim, loss = wassersteinLoss)
 
         # After generator model compilation, we make discriminator layers 4 - > trainable.
-        for layer in self.discriminator.layers[4:]:
+        for layer in self.discriminator.layers[5:]:
             layer.trainable = True
         for layer in self.generator.layers:
             layer.trainable = False
@@ -104,6 +106,7 @@ class wGAN():
         self.discriminator.trainable    = True
         self.generator.trainable        = False
 
+        self.discriminator.summary()
 
         #real_samples                        = Input(shape=X_train.shape[1:])
         real_samples                        = Input(shape=self.image_dimensions)
@@ -132,8 +135,6 @@ class wGAN():
                                           wassersteinLoss,
                                           partial_gp_loss])
 
-        self.generator.summary()
-        self.discriminator.summary()
 
 
     def trainGAN(self, X_train, n_facies, iterations = NUM_ITER, batch_size = BATCH_SIZE, sample_interval = SAMPLE_INT):
@@ -186,12 +187,12 @@ class wGAN():
                     
             # If at save interval => save generated image samples
             if it % sample_interval == 0:
-                self.saveGeneratedImages(it, 4)
+                self.saveGeneratedImages(it, 4, (4, self.nchan))
                 self.saveModels(it)
                 self.saveLoss(it, dLosses, gLosses)
 
 
-    def saveGeneratedImages(self, epoch, examples=4, dim=(4,2), figsize=(10, 10)):
+    def saveGeneratedImages(self, epoch, examples=4, dim=(4,3), figsize=(10, 10)):
         noise = np.random.normal(0, 1, size=[examples, self.latent_dim])
         generated_images = self.generator.predict(noise)
 

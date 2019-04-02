@@ -86,8 +86,11 @@ class wGAN():
         self.discriminator.trainable = False
 
         # Keep the parameters in the first 4 layers
-        for layer in self.generator.layers[:4]:
+        for layer in self.generator.layers[:5]:
             layer.trainable = False
+
+
+        self.generator.summary()
 
         generator_input     = Input(shape=(self.latent_dim,))
         generator_layers    = self.generator(generator_input)
@@ -96,13 +99,14 @@ class wGAN():
         self.generator_model.compile(optimizer = optim, loss = wassersteinLoss)
 
         # After generator model compilation, we make discriminator layers 4 - > trainable.
-        for layer in self.discriminator.layers[4:]:
+        for layer in self.discriminator.layers[5:]:
             layer.trainable = True
         for layer in self.generator.layers:
             layer.trainable = False
             
         self.discriminator.trainable    = True
         self.generator.trainable        = False
+        self.discriminator.summary()
 
 
         #real_samples                        = Input(shape=X_train.shape[1:])
@@ -132,8 +136,6 @@ class wGAN():
                                           wassersteinLoss,
                                           partial_gp_loss])
 
-        self.generator.summary()
-        self.discriminator.summary()
 
 
     def trainGAN(self, X_train, n_facies, iterations = NUM_ITER, batch_size = BATCH_SIZE, sample_interval = SAMPLE_INT):
