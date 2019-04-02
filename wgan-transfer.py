@@ -25,7 +25,7 @@ from keras import initializers
 from functools import partial
 
 BATCH_SIZE              = 64
-LATENT_DIM              = 32
+#LATENT_DIM              = 32
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
 NUM_ITER                = 15000
@@ -66,7 +66,7 @@ class wGAN():
         self.image_dimensions       = (self.nchan, self.nrows, self.ncols)
         
         self.batch_size             = BATCH_SIZE
-        self.latent_dim             = LATENT_DIM
+        #self.latent_dim             = LATENT_DIM
 
         # Adam gradient descent
         optim               = Adam(lr = ADAM_LR, beta_1 = ADAM_B1, beta_2 = ADAM_B2)
@@ -74,6 +74,10 @@ class wGAN():
         # Build the generator
         self.generator      = kmod.load_model(generator_pretrained, custom_objects={'wassersteinLoss': wassersteinLoss})
         self.generator.summary()
+
+        inp_shape                   = self.generator.input.shape
+        self.latent_dim             = inp_shape[1]
+
         # Build discriminator
         self.discriminator  = kmod.load_model(discriminator_pretrained, custom_objects={'wassersteinLoss': wassersteinLoss})
         self.discriminator.summary()
