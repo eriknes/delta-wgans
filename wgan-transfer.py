@@ -73,14 +73,12 @@ class wGAN():
 
         # Build the generator
         self.generator      = kmod.load_model(generator_pretrained, custom_objects={'wassersteinLoss': wassersteinLoss})
-        self.generator.summary()
 
         inp_shape                   = self.generator.input.shape
         self.latent_dim             = inp_shape[1]
 
         # Build discriminator
         self.discriminator  = kmod.load_model(discriminator_pretrained, custom_objects={'wassersteinLoss': wassersteinLoss})
-        self.discriminator.summary()
         
         # Set trainable = false for the discriminator layers in full model
         for layer in self.discriminator.layers:
@@ -102,6 +100,7 @@ class wGAN():
             layer.trainable = True
         for layer in self.generator.layers:
             layer.trainable = False
+            
         self.discriminator.trainable    = True
         self.generator.trainable        = False
 
@@ -132,6 +131,9 @@ class wGAN():
                                     loss=[wassersteinLoss,
                                           wassersteinLoss,
                                           partial_gp_loss])
+
+        self.generator.summary()
+        self.discriminator.summary()
 
 
     def trainGAN(self, X_train, n_facies, iterations = NUM_ITER, batch_size = BATCH_SIZE, sample_interval = SAMPLE_INT):

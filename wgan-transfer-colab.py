@@ -25,7 +25,7 @@ from keras import initializers
 from functools import partial
 
 BATCH_SIZE              = 64
-LATENT_DIM              = 32
+#LATENT_DIM              = 32
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
 NUM_ITER                = 15000
@@ -66,17 +66,19 @@ class wGAN():
         self.image_dimensions       = (self.nchan, self.nrows, self.ncols)
         
         self.batch_size             = BATCH_SIZE
-        self.latent_dim             = LATENT_DIM
+        #self.latent_dim             = LATENT_DIM
 
         # Adam gradient descent
         optim               = Adam(lr = ADAM_LR, beta_1 = ADAM_B1, beta_2 = ADAM_B2)
 
         # Build the generator
         self.generator      = kmod.load_model(generator_pretrained, custom_objects={'wassersteinLoss': wassersteinLoss})
-        self.generator.summary()
+
+        inp_shape                   = self.generator.input.shape
+        self.latent_dim             = inp_shape[1]
+
         # Build discriminator
         self.discriminator  = kmod.load_model(discriminator_pretrained, custom_objects={'wassersteinLoss': wassersteinLoss})
-        self.discriminator.summary()
         
         # Set trainable = false for the discriminator layers in full model
         for layer in self.discriminator.layers:
@@ -98,6 +100,7 @@ class wGAN():
             layer.trainable = True
         for layer in self.generator.layers:
             layer.trainable = False
+            
         self.discriminator.trainable    = True
         self.generator.trainable        = False
 
@@ -128,6 +131,9 @@ class wGAN():
                                     loss=[wassersteinLoss,
                                           wassersteinLoss,
                                           partial_gp_loss])
+
+        self.generator.summary()
+        self.discriminator.summary()
 
 
     def trainGAN(self, X_train, n_facies, iterations = NUM_ITER, batch_size = BATCH_SIZE, sample_interval = SAMPLE_INT):
@@ -180,27 +186,24 @@ class wGAN():
                     
             # If at save interval => save generated image samples
             if it % sample_interval == 0:
-                self.saveGeneratedImages(it, 3)
+                self.saveGeneratedImages(it, 4)
                 self.saveModels(it)
                 self.saveLoss(it, dLosses, gLosses)
 
 
-    def saveGeneratedImages(self, it, examples=3):
+    def saveGeneratedImages(self, epoch, examples=4, dim=(4,2), figsize=(10, 10)):
         noise = np.random.normal(0, 1, size=[examples, self.latent_dim])
         generated_images = self.generator.predict(noise)
-        dim=(examples, self.nchan)
 
-        # Do not display plot
-        plt.ioff()
-        #plt.figure(figsize=(20,10))
+        plt.figure(figsize=figsize)
         for i in range(examples):
             for j in range(self.nchan):
                 plt.subplot(dim[0], dim[1], i*self.nchan+j+1)
                 plt.imshow(generated_images[i, j], interpolation='nearest', cmap='gray_r')
                 plt.axis('off')
-                plt.title("Facies " + str(j))
+                plt.title("Channel " + str(j))
         plt.tight_layout()
-        plt.savefig('samples/wgan_image_iter_%d.png' % it)
+        plt.savefig('images/genIm_it_%d.png' % epoch)
         plt.close()
 
 
@@ -232,7 +235,7 @@ def createImageFaciesChannels(X, nchan):
 
 # Read csv file
 def load_file(fname):
-     X = pd.read_csv(fname, header=None, dtype='int8', nrows=15000)
+     X = pd.read_csv(fname, header=None, dtype='int8', nrows=200)
      X = X.values
      #X = X.astype(dtype='int8')
      return X
@@ -291,7 +294,7 @@ if __name__ == '__main__':
     discriminator_pretrained = sys.argv[5]
     #max_filters = int(sys.argv[4])
     #kernel_size = int(sys.argv[5])
-    #num_pix     = int(sys.argv[6])
+    num_pix     = int(sys.argv[6])
 
     # Check existence of paths and training data
     if not os.path.exists(input_path):
@@ -327,5 +330,5 @@ if __name__ == '__main__':
     print('Train GAN model')
     print('----------------------------')
     os.chdir(output_path)
-    #wgan.trainGAN(X_train, n_facies)
+    wgan.trainGAN(X_train, n_facies)
 
