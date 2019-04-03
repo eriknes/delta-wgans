@@ -86,9 +86,9 @@ class wGAN():
         self.discriminator.trainable = False
 
         # Keep the parameters in the first 4 layers
-        for layer in self.generator.layers[:15]:
+        for layer in self.generator.layers[:12]:
             layer.trainable = False
-        for layer in self.generator.layers[15:]:
+        for layer in self.generator.layers[12:]:
             layer.trainable = True
         self.generator.trainable = True
 
@@ -101,7 +101,7 @@ class wGAN():
         self.generator_model.compile(optimizer = optim, loss = wassersteinLoss)
 
         # After generator model compilation, we make discriminator layers 4 - > trainable.
-        for layer in self.discriminator.layers[15:]:
+        for layer in self.discriminator.layers[12:]:
             layer.trainable = True
         for layer in self.generator.layers:
             layer.trainable = False

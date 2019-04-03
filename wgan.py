@@ -24,7 +24,7 @@ from keras.optimizers import RMSprop, Adam
 from keras import initializers
 from functools import partial
 
-BATCH_SIZE              = 64
+BATCH_SIZE              = 64    
 LATENT_DIM              = 32
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
@@ -341,12 +341,12 @@ def build_dataset(input_path, filename, nx, ny):
     #        X_new[i,j-1,:,:]      = Xtemp2
     
     # Test generation of batch
-    idx = np.random.randint(0, X_new.shape[0], 32)
-    image_batch = createImageFaciesChannels(X_new[idx], nchan - 1)
-    print("Image batch shape:")
-    print(image_batch.shape)
+    #idx = np.random.randint(0, X_new.shape[0], 32)
+    #image_batch = createImageFaciesChannels(X_new[idx], nchan - 1)
+    #print("Image batch shape:")
+    #print(image_batch.shape)
 
-    print("X_train shape: " + str(X_new.shape))
+    #print("X_train shape: " + str(X_new.shape))
 
     nchan = nchan - 1
 

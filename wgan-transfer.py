@@ -86,8 +86,11 @@ class wGAN():
         self.discriminator.trainable = False
 
         # Keep the parameters in the first 4 layers
-        for layer in self.generator.layers[:5]:
+        for layer in self.generator.layers[:12]:
             layer.trainable = False
+        for layer in self.generator.layers[12:]:
+            layer.trainable = True
+        self.generator.trainable = True
 
 
         self.generator.summary()
@@ -99,7 +102,7 @@ class wGAN():
         self.generator_model.compile(optimizer = optim, loss = wassersteinLoss)
 
         # After generator model compilation, we make discriminator layers 4 - > trainable.
-        for layer in self.discriminator.layers[5:]:
+        for layer in self.discriminator.layers[12:]:
             layer.trainable = True
         for layer in self.generator.layers:
             layer.trainable = False
@@ -208,7 +211,11 @@ class wGAN():
                 plt.axis('off')
                 plt.title("Facies " + str(j))
         plt.tight_layout()
-        plt.savefig('samples/wgan_image_iter_%d.png' % it)
+        filename="samples/wgan_image_iter_{0}.png".format(it)
+        if os.path.isfile(filename):
+            os.remove(filename)
+        print(os.getcwd())
+        plt.savefig(filename)
         plt.close()
 
 
@@ -216,13 +223,23 @@ class wGAN():
     def saveLoss(self, it, dLosses, gLosses):
         discFileName = "samples/disc_loss_it_{0}.csv".format(it)
         genFileName="samples/gen_loss_it_{0}.csv".format(it)
+        if os.path.isfile(discFileName):
+            os.remove(discFileName)
+        if os.path.isfile(genFileName):
+            os.remove(genFileName)
         np.savetxt(discFileName, dLosses, delimiter=",")
         np.savetxt(genFileName, gLosses, delimiter=",")
 
 
     def saveModels(self, it):
-        self.generator.save('models/generator_it_%d.h5' % it)
-        self.discriminator.save('models/discriminator_it_%d.h5' % it)
+        genfilename = "models/generator_it_{0}.h5".format(it)
+        discfilename = "models/discriminator_it_{0}.h5".format(it)
+        if os.path.isfile(genfilename):
+            os.remove(genfilename)
+        if os.path.isfile(discfilename):
+            os.remove(discfilename)
+        self.generator.save(genfilename)
+        self.discriminator.save(discfilename)
 
 def createImageFaciesChannels(X, nchan):
     m   = X.shape[0]
@@ -278,12 +295,12 @@ def build_dataset(input_path, filename, nx, ny):
     #        X_new[i,j-1,:,:]      = Xtemp2
     
     # Test generation of batch
-    idx = np.random.randint(0, X_new.shape[0], 32)
-    image_batch = createImageFaciesChannels(X_new[idx], nchan - 1)
-    print("Image batch shape:")
-    print(image_batch.shape)
+    #idx = np.random.randint(0, X_new.shape[0], 32)
+    #image_batch = createImageFaciesChannels(X_new[idx], nchan - 1)
+    #print("Image batch shape:")
+    #print(image_batch.shape)
 
-    print("X_train shape: " + str(X_new.shape))
+    #print("X_train shape: " + str(X_new.shape))
 
     nchan = nchan - 1
 
