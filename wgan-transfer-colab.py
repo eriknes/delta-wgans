@@ -1,10 +1,6 @@
 from __future__ import print_function, division
 
 import os
-import matplotlib as mpl
-if os.environ.get('DISPLAY','') == '':
-    print('No display variable found - using non-interactive agg backend')
-    mpl.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import numpy as np
@@ -239,7 +235,7 @@ def createImageFaciesChannels(X, nchan):
 
 # Read csv file
 def load_file(fname):
-     X = pd.read_csv(fname, header=None, dtype='int8', nrows=200)
+     X = pd.read_csv(fname, header=None, dtype='int8')
      X = X.values
      #X = X.astype(dtype='int8')
      return X

@@ -29,7 +29,7 @@ BATCH_SIZE              = 64
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
 NUM_ITER                = 15000
-SAMPLE_INT              = 500
+SAMPLE_INT              = 1000
 ADAM_LR                 = 0.0002
 ADAM_B1                 = 0.5
 ADAM_B2                 = 0.99
@@ -191,7 +191,7 @@ class wGAN():
                     
             # If at save interval => save generated image samples
             if it % sample_interval == 0:
-                self.saveGeneratedImages(it, 3)
+                self.saveGeneratedImages(it, 5)
                 self.saveModels(it)
                 self.saveLoss(it, dLosses, gLosses)
 
@@ -199,24 +199,31 @@ class wGAN():
     def saveGeneratedImages(self, it, examples=3):
         noise = np.random.normal(0, 1, size=[examples, self.latent_dim])
         generated_images = self.generator.predict(noise)
-        dim=(examples, self.nchan)
+        (nreal,nchan,nx,ny) = generated_images.shape
+        #dim=(examples, self.nchan)
 
         # Do not display plot
-        plt.ioff()
+        #plt.ioff()
         #plt.figure(figsize=(20,10))
-        for i in range(examples):
-            for j in range(self.nchan):
-                plt.subplot(dim[0], dim[1], i*self.nchan+j+1)
-                plt.imshow(generated_images[i, j], interpolation='nearest', cmap='gray_r')
-                plt.axis('off')
-                plt.title("Facies " + str(j))
-        plt.tight_layout()
-        filename="samples/wgan_image_iter_{0}.png".format(it)
-        if os.path.isfile(filename):
-            os.remove(filename)
-        print(os.getcwd())
-        plt.savefig(filename)
-        plt.close()
+        #for i in range(examples):
+        #    for j in range(self.nchan):
+        #        plt.subplot(dim[0], dim[1], i*self.nchan+j+1)
+        #        plt.imshow(generated_images[i, j], interpolation='nearest', cmap='gray_r')
+        #        plt.axis('off')
+        #        plt.title("Facies " + str(j))
+        #plt.tight_layout()
+        filename="samples/wgan_image_iter_{0}.csv".format(it)
+
+        np.savetxt(filename, np.reshape(generatedImages,(nreal*nchan,nx*ny)), delimiter=",")
+
+        #print(os.getcwd()   )
+        #if os.path.isfile(filename):
+        #    print("Removing file {0}".format(filename))
+        #    os.remove(filename)
+        #else:
+        #    print("File {0} does not exist".format(filename))
+        #plt.savefig(filename)
+        #plt.close()
 
 
     # Plot the loss from each batch
@@ -257,7 +264,7 @@ def createImageFaciesChannels(X, nchan):
 
 # Read csv file
 def load_file(fname):
-     X = pd.read_csv(fname, header=None, dtype='int8', nrows=200)
+     X = pd.read_csv(fname, header=None, dtype='int8')
      X = X.values
      #X = X.astype(dtype='int8')
      return X
@@ -320,20 +327,20 @@ if __name__ == '__main__':
 
     # Check existence of paths and training data
     if not os.path.exists(input_path):
-        print('Input path %s does not exist!' %input_path)
+        print("Input path {0} does not exist!".format(input_path))
         sys.exit(1)
-    print('Input path exists: OK')
+    print("Input path {0} exists: OK".format(input_path))
 
     if not os.path.exists(output_path):
-        print('Output path %s does not exist!' %output_path)
+        print("Output path {0} does not exist!".format(output_path))
         sys.exit(1)
-    print('Output path exists: OK')
+    print("Output path {0} exists: OK".format(output_path))
 
     os.chdir(input_path)
     if not os.path.isfile(filename):
-        print('Input file %s does not exist!' %filename)
+        print('Input file {0} does not exist!'.format(filename))
         sys.exit(1)
-    print('Input file exists: OK')
+    print('Input {0} file exists: OK'.format(filename))
 
     # Build dataset
     print('----------------------------')
