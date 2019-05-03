@@ -136,20 +136,20 @@ class wGAN():
         #generator.add(Dense(128, input_dim=self.latent_dim, 
         #    kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         #generator.add(Activation("relu"))
-        generator.add(Dense(max_filters*12*12*3, input_dim=self.latent_dim, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+        generator.add(Dense(256*12*12*3, input_dim=self.latent_dim, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         generator.add(Reshape((max_filters, 12, 12, 3)))
 
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
         #generator.add(Dropout(0.2))
         
-        generator.add(Conv3D(max_filters, kernel_size=(kernel_sz, kernel_sz, 5), padding='same'))
+        generator.add(Conv3D(256, kernel_size=(kernel_sz, kernel_sz, 5), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
-        generator.add(Conv3D(max_filters/2, kernel_size=(kernel_sz, kernel_sz, 5), padding='same'))
+        generator.add(Conv3D(128, kernel_size=(kernel_sz, kernel_sz, 5), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
-        generator.add(Conv3D(max_filters/4, kernel_size=(kernel_sz, kernel_sz, 5), padding='same'))
+        generator.add(Conv3D(64, kernel_size=(kernel_sz, kernel_sz, 5), padding='same'))
         generator.add(Activation("relu"))
         #generator.add(UpSampling3D(size=(2, 2, 2)))
         #generator.add(Conv3D(78, kernel_size=(5, 5, 5), padding='same'))
@@ -164,20 +164,20 @@ class wGAN():
 
         discriminator = Sequential()
 
-        discriminator.add(Conv3D(max_filters, kernel_size=(kernel_sz, kernel_sz, 5), strides=(2,2,1), input_shape=self.image_dimensions, 
+        discriminator.add(Conv3D(256, kernel_size=(kernel_sz, kernel_sz, 5), strides=(2,2,1), input_shape=self.image_dimensions, 
             padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Conv3D(max_filters/2, kernel_size=(kernel_sz,kernel_sz, 5), strides=(2,2,2), padding="same"))
+        discriminator.add(Conv3D(128, kernel_size=(kernel_sz,kernel_sz, 5), strides=(2,2,2), padding="same"))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Conv3D(max_filters/2, kernel_size=(kernel_sz,kernel_sz, 5), strides=(2,2,2), padding="same"))
+        discriminator.add(Conv3D(128, kernel_size=(kernel_sz,kernel_sz, 5), strides=(2,2,2), padding="same"))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Conv3D(max_filters/4, kernel_size=(kernel_sz,kernel_sz, 5), strides=(2,2,2), padding="same"))
+        discriminator.add(Conv3D(64, kernel_size=(kernel_sz,kernel_sz, 5), strides=(2,2,2), padding="same"))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
