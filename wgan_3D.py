@@ -2,9 +2,9 @@ from __future__ import print_function, division
 
 import sys
 import os
-if os.environ.get('DISPLAY','') == '':
-    print('No display variable found - using non-interactive agg backend')
-    mpl.use('Agg')
+#if os.environ.get('DISPLAY','') == '':
+#    print('No display variable found - using non-interactive agg backend')
+#    mpl.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import numpy as np
