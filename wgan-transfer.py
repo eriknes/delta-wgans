@@ -214,7 +214,7 @@ class wGAN():
         #plt.tight_layout()
         filename="samples/wgan_image_iter_{0}.csv".format(it)
 
-        np.savetxt(filename, np.reshape(generatedImages,(nreal*nchan,nx*ny)), delimiter=",")
+        np.savetxt(filename, np.reshape(generated_images,(nreal*nchan,nx*ny)), delimiter=",")
 
         #print(os.getcwd()   )
         #if os.path.isfile(filename):
