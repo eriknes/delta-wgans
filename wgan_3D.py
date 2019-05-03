@@ -28,7 +28,10 @@ from keras import initializers
 from functools import partial
 #import loadData3D as d3d
 
-LATENT_VEC_SIZE         = 20
+SAMPLE_INT              = 500
+EPSILON                 = .2
+RANDOM_DIM              = 32
+LATENT_VEC_SIZE         = 32
 BATCH_COUNT             = 10
 BATCH_SIZE              = 32
 GRADIENT_PENALTY_WEIGHT = 10
@@ -39,46 +42,36 @@ ADAM_BETA_1             = 0.5
 ADAM_BETA_2             = 0.9
 
 def wassersteinLoss(y_true, y_pred):
-    """Wasserstein loss for a sample batch."""
-    return K.mean(y_true * y_pred)
+        return K.mean(y_true * y_pred)
 
 def gradientPenaltyLoss(y_true, y_pred, averaged_samples, gradient_penalty_weight):
-    """Calculates the gradient penalty loss for a batch of "averaged" samples."""
+
     gradients = K.gradients(y_pred, averaged_samples)[0]
-    # compute the euclidean norm by squaring ...
     gradients_sqr = K.square(gradients)
-    #   ... summing over the rows ...
     gradients_sqr_sum = K.sum(gradients_sqr,
                               axis=np.arange(1, len(gradients_sqr.shape)))
-    #   ... and sqrt
     gradient_l2_norm = K.sqrt(gradients_sqr_sum)
-    # compute lambda * (1 - ||grad||)^2 still for each single sample
     gradient_penalty = gradient_penalty_weight * K.square(1 - gradient_l2_norm)
-    # return the mean as loss over all the batch samples
+    # mean loss over samples
     return K.mean(gradient_penalty)
 
 class RandomWeightedAverage(_Merge):
-    """Takes a randomly-weighted average of two tensors. In geometric terms, this outputs a random point on the line
-    between each pair of input points. Inheritance from _Merge """
 
     def _merge_function(self, inputs):
-        weights = K.random_uniform((BATCH_SIZE, 1, 1, 1, 1))
+        weights = K.random_uniform((BATCH_SIZE, 1, 1, 1))
         return (weights * inputs[0]) + ((1 - weights) * inputs[1])
 
 class wGAN():
-    def __init__(self, nx, ny, nz, nchan):
+    def __init__(self, nx, ny, nz, nchan, max_filters, kernel_sz):
         
-        # Uncomment for deterministic output.
-        #np.random.seed(1)
 
-        # Theano uses ordering nchannels, nx, ny, nz
         K.set_image_dim_ordering('th')
         #(nchan,nx,ny,nz)        = X_train[0].shape
         self.nrows              = nx
         self.ncols              = ny
         self.nlayers            = nz
         self.nchan              = nchan
-        self.image_dimensions   = (nchan, self.nrows, self.ncols, self.nlayers)
+        self.image_dimensions   = (self.nchan, self.nrows, self.ncols, self.nlayers)
         print("Image dim is: " )
         print( self.image_dimensions)
         
@@ -86,7 +79,7 @@ class wGAN():
         self.latent_dim         = LATENT_VEC_SIZE
 
         #optim               = Adam(lr = ADAM_LR, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2)
-        optim               = Adam(lr = ADAM_LR, beta_1 = ADAM_BETA_1)
+        optim               = Adam(lr = ADAM_LR, beta_1 = ADAM_BETA_1, beta_2 = ADAM_BETA_2)
 
 
         # Build the generator
@@ -98,15 +91,13 @@ class wGAN():
             layer.trainable = False
         self.discriminator.trainable = False
 
-        # The generator takes noise as input and generated imgs
-
         generator_input             = Input(shape=(self.latent_dim,))
         generator_layers            = self.generator(generator_input)
         discriminator_layers        = self.discriminator(generator_layers)
         self.generator_model        = Model(inputs=[generator_input], outputs=[discriminator_layers])
         self.generator_model.compile(optimizer = optim, loss = wassersteinLoss)
 
-        # After generator model compilation, we make the discriminator layers trainable.
+        # After generator model compilation, make discriminator layers trainable.
         for layer in self.discriminator.layers:
             layer.trainable                 = True
         for layer in self.generator.layers:
@@ -114,88 +105,79 @@ class wGAN():
         self.discriminator.trainable        = True
         self.generator.trainable            = False
 
-
         real_samples                            = Input(shape=(self.nchan, nx, ny, nz))
         generator_input_for_discriminator       = Input(shape=(self.latent_dim,))
         generated_samples_for_discriminator     = self.generator(generator_input_for_discriminator)
         discriminator_output_from_generator     = self.discriminator(generated_samples_for_discriminator)
         discriminator_output_from_real_samples  = self.discriminator(real_samples)
-
-        # We also need to generate weighted-averages of real and generated samples, to use for the gradient norm penalty.
         averaged_samples        = RandomWeightedAverage()([ real_samples, generated_samples_for_discriminator])
 
-        # We then run these samples through the discriminator as well. Note that we never really use the discriminator
-        # output for these samples - we're only running them to get the gradient norm for the gradient penalty loss.
         averaged_samples_out    = self.discriminator(averaged_samples)
 
-        # The gradient penalty loss function requires the input averaged samples to get gradients. However,
-        # Keras loss functions can only have two arguments, y_true and y_pred. We get around this by making a partial()
-        # of the function with the averaged samples here.
         partial_gp_loss         = partial(gradientPenaltyLoss, averaged_samples=averaged_samples,
                                   gradient_penalty_weight=GRADIENT_PENALTY_WEIGHT)
         partial_gp_loss.__name__ = 'gradient_penalty'  # Functions need names in Keras
 
-        # If we don't concatenate the real and generated samples, however, we get three outputs: One of the generated
-        # samples, one of the real samples, and one of the averaged samples, all of size BATCH_SIZE. This works neatly!
         self.discriminator_model = Model(inputs=[real_samples, generator_input_for_discriminator],
                                     outputs=[discriminator_output_from_real_samples,
                                              discriminator_output_from_generator,
                                              averaged_samples_out])
-        # We use the Adam paramaters from Gulrajani et al. We use the Wasserstein loss for both the real and generated
-        # samples, and the gradient penalty loss for the averaged samples.
+        
+        # Adam paramaters from Gulrajani et al. We use the Wasserstein loss for both the real and generated
+        # samples, gradient penalty loss for the averaged samples.
         self.discriminator_model.compile(optimizer= optim,
                                     loss=[wassersteinLoss,
                                           wassersteinLoss,
                                           partial_gp_loss])
 
-    def buildGenerator(self):
+    def buildGenerator(self, max_filters, kernel_sz):
 
         generator = Sequential()
         #generator.add(Dense(128, input_dim=self.latent_dim, 
         #    kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         #generator.add(Activation("relu"))
-        generator.add(Dense(256*8*8*2, input_dim=self.latent_dim, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-        generator.add(Reshape((256, 8, 8, 2)))
+        generator.add(Dense(max_filters*12*12*3, input_dim=self.latent_dim, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+        generator.add(Reshape((max_filters, 12, 12, 3)))
 
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
         #generator.add(Dropout(0.2))
         
-        generator.add(Conv3D(128, kernel_size=(7, 7, 5), padding='same'))
+        generator.add(Conv3D(max_filters, kernel_size=(kernel_sz, kernel_sz, 5), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
-        generator.add(Conv3D(64, kernel_size=(7, 7, 5), padding='same'))
+        generator.add(Conv3D(max_filters/2, kernel_size=(kernel_sz, kernel_sz, 5), padding='same'))
         generator.add(Activation("relu"))
         generator.add(UpSampling3D(size=(2, 2, 2)))
-        generator.add(Conv3D(64, kernel_size=(7, 7, 5), padding='same'))
+        generator.add(Conv3D(max_filters/4, kernel_size=(kernel_sz, kernel_sz, 5), padding='same'))
         generator.add(Activation("relu"))
         #generator.add(UpSampling3D(size=(2, 2, 2)))
         #generator.add(Conv3D(78, kernel_size=(5, 5, 5), padding='same'))
         #generator.add(Activation("relu"))
-        generator.add(Conv3D(self.nchan, kernel_size=(7, 7, 5), padding='same', 
+        generator.add(Conv3D(self.nchan, kernel_size=(kernel_sz, kernel_sz, 5), padding='same', 
             activation='sigmoid', kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         generator.summary()
 
         return generator
 
-    def buildDiscriminator(self):
+    def buildDiscriminator(self, max_filters, kernel_sz):
 
         discriminator = Sequential()
 
-        discriminator.add(Conv3D(64, kernel_size=(7,7,5), strides=(2,2,2), input_shape=self.image_dimensions, 
+        discriminator.add(Conv3D(max_filters, kernel_size=(kernel_sz, kernel_sz, 5), strides=(2,2,1), input_shape=self.image_dimensions, 
             padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Conv3D(128, kernel_size=(7,7,5), strides=(2,2,2), padding="same"))
+        discriminator.add(Conv3D(max_filters/2, kernel_size=(kernel_sz,kernel_sz, 5), strides=(2,2,2), padding="same"))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        #discriminator.add(Conv3D(64, kernel_size=(5,5,5), strides=(2,2,2), padding="same"))
-        #discriminator.add(LeakyReLU(.2))
-        #discriminator.add(Dropout(0.3))
+        discriminator.add(Conv3D(max_filters/2, kernel_size=(kernel_sz,kernel_sz, 5), strides=(2,2,2), padding="same"))
+        discriminator.add(LeakyReLU(.2))
+        discriminator.add(Dropout(0.3))
 
-        discriminator.add(Conv3D(256, kernel_size=(7,7,5), strides=(2,2,2), padding="same"))
+        discriminator.add(Conv3D(max_filters/4, kernel_size=(kernel_sz,kernel_sz, 5), strides=(2,2,2), padding="same"))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
@@ -207,96 +189,82 @@ class wGAN():
 
         return discriminator
 
-    def trainGAN(self, generator, n_epochs = 10, batch_size = 64, sample_interval = 1):
+    def trainGAN(self, generator, iterations = NUM_ITER, batch_size = BATCH_SIZE, sample_interval = SAMPLE_INT, eps = EPSILON, randomDim = RANDOM_DIM):
         
         # We make three label vectors for training. positive_y is the label vector for real samples, with value 1.
         # negative_y is the label vector for generated samples, with value -1. The dummy_y vector is passed to the
         # gradient_penalty loss function and is not used.
+
         positive_y  = np.ones((self.batch_size, 1), dtype=np.float32)
         negative_y  = - positive_y
         dummy_y     = np.zeros((self.batch_size, 1), dtype=np.float32)
 
-
-        eps             = .2
-        randomDim       = 12
-
-        #batch_count = int(X_train.shape[0] / (self.batch_size * N_CRITIC_ITER))
-        #minibatch_size = int(batch_count * N_CRITIC_ITER)
-
         dLosses                     = []
         gLosses                     = []
 
-        for epoch in range(n_epochs + 1):
-            print ("Start epoch %d ----------" % epoch)
+        for it in range(iterations + 1):
+            #print ("Start it %d ----------" % epoch)
             # shuffle Xtrain
             #np.random.shuffle(X_train)
             #print("Epoch: ", epoch)
             #print("Number of batches: ", int(X_train.shape[0] // BATCH_SIZE))
 
-            nSamples        = BATCH_COUNT*N_CRITIC_ITER
-            noise           = np.random.normal(0, 1, size=[nSamples, randomDim])
-            generatedCube   = np.zeros((nSamples, self.nrows,self.ncols, self.nlayers))
-            generatedImages = generator.predict(noise)
+            nSamples        = BATCH_COUNT
+            
 
-            firstLayer      = np.round(np.reshape(generatedImages, (nSamples, 96, 96)))
-            generatedCube[:,:,:,0] = firstLayer[:,19:83,19:83]
+            for j in range(N_CRITIC_ITER):
+                noise           = np.random.normal(0, 1, size=[nSamples, randomDim])
+                generatedCube   = np.zeros((nSamples, self.nrows,self.ncols, self.nlayers))
+                generatedImages = generator.predict(noise)
 
-            # Create cube
+                firstLayer      = np.round(np.reshape(generatedImages[:,0,:,:], (nSamples, self.nrows*2, self.ncols*2)))
+                # first layer
+                generatedCube[:,:,:,0] = firstLayer[:,0:2:self.nrows,0:2:self.ncols]
 
-            for i in range(1,self.nlayers):
-              noise2            = np.random.normal(0, 1, size=[nSamples, randomDim])
-              noise             = noise + eps*noise2
-              generatedImages   = generator.predict(noise)
-              newLayer          = np.reshape(generatedImages, (nSamples, 96, 96))
-              generatedCube[:,:,:,i] = np.round(newLayer[:,19:83,19:83])
+                # Create cube
+                for i in range(1,self.nlayers):
+                  noise2            = np.random.normal(0, 1, size=[nSamples, randomDim])
+                  noise             = noise + eps*noise2
+                  generatedImages   = generator.predict(noise)
+                  newLayer          = np.reshape(generatedImages[:,0,:,:], (nSamples, self.nrows*2, self.ncols*2))
+                  generatedCube[:,:,:,i] = np.round(newLayer[:,0:2:self.nrows,0:2:self.ncols])
 
-            # Insert channel dimension 
-            generatedCube                     = generatedCube[:, np.newaxis, :, :, :]
-
-            for _ in range(BATCH_COUNT):
-
-                #discriminator_minibatches = X_train[i * minibatch_size:(i + 1) * minibatch_size]
-
-                for j in range(N_CRITIC_ITER):
-
-                    # ---------------------
-                    #  1 Train Discriminator
-                    # ---------------------
-
-                    # Select a random batch of images
-                    idx         = np.random.randint(0, generatedCube.shape[0], batch_size)
-                    image_batch = generatedCube[idx]
-
-                    # Sample noise as generator input
-                    noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim]).astype(np.float32)
-
-                    # Train discriminator model
-                    #print(image_batch.shape)
-                    #print(noise.shape)
-                    #print(negative_y.shape)
-                    #print(positive_y.shape)
-                    #print(dummy_y.shape)
-                    d_loss = self.discriminator_model.train_on_batch([image_batch, noise],
-                                                                 [positive_y, negative_y, dummy_y])
-
+                # Insert channel dimension 
+                generatedCube                     = generatedCube[:, np.newaxis, :, :, :]
 
                 # ---------------------
-                #  2 Train Generator
+                #  1 Train Discriminator
                 # ---------------------
+
+                # Select a random batch of images
+                #idx         = np.random.randint(0, generatedCube.shape[0], batch_size)
+                #image_batch = generatedCube[idx]
+
+                # Sample noise as generator input
                 noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim]).astype(np.float32)
-                g_loss = self.generator_model.train_on_batch(noise, positive_y)
+
+                # Train discriminator model
+                d_loss = self.discriminator_model.train_on_batch([generatedCube, noise],
+                                                             [positive_y, negative_y, dummy_y])
+
+            # ---------------------
+            #  2 Train Generator
+            # ---------------------
+            noise = np.random.normal(0, 1, size=[batch_size, self.latent_dim]).astype(np.float32)
+            g_loss = self.generator_model.train_on_batch(noise, positive_y)
+
             gLosses.append(g_loss)
             dLosses.append(.5*(d_loss[0] + d_loss[1]))
                 
             # Print the progress
-            print ("Epoch %d, [D loss: %f] [G loss: %f]" % (epoch, .5*(d_loss[0] + d_loss[1]), g_loss))
-                    
+            print ("Iteration %d, [D loss: %f] [G loss: %f]" % (it, .5*(d_loss[0] + d_loss[1]), g_loss))
+                        
             # If at save interval => save generated image samples
-            if epoch % sample_interval == 0:
-                self.saveGenImages(epoch)
-                self.saveSampleData(epoch, generatedCube)
-                self.saveModels(epoch)
-                self.plotLoss(epoch, dLosses, gLosses)
+            if it % sample_interval == 0:
+                #self.saveGenImages(it)
+                #self.saveSampleData(it, generatedCube)
+                self.saveModels(it)
+                #self.plotLoss(it, dLosses, gLosses)
 
     def saveSampleData(self, epoch, cube, examples=16, dim=(4, 4), figsize=(10, 10)):
         
@@ -353,24 +321,57 @@ class wGAN():
 
 
 if __name__ == '__main__':
+
+    # Load dataset
+    input_path  = sys.argv[1]
+    output_path = sys.argv[2]
+    filename    = sys.argv[3]
+    max_filters = int(sys.argv[4])
+    kernel_size = int(sys.argv[5])
+    #num_pix     = int(sys.argv[6])
+    eps         = double(sys.argv[6])
+
+
+    # Check existence of paths and training data
+    if not os.path.exists(input_path):
+        print('Input path %s does not exist!' %input_path)
+        sys.exit(1)
+    print('Input path exists: OK')
+
+    if not os.path.exists(output_path):
+        print('Output path %s does not exist!' %output_path)
+        sys.exit(1)
+    print('Output path exists: OK')
+
+    os.chdir(input_path)
+    if not os.path.isfile(filename):
+        print('Input file %s does not exist!' %filename)
+        sys.exit(1)
+    print('Input file exists: OK')
     
     # Load dataset
-    generator           = kmod.load_model('models/tidal_gen_lat12.h5', 
+    generator           = kmod.load_model(filename, 
             custom_objects={'wassersteinLoss': wassersteinLoss})
-    #filename                    = "data/train/test3D.csv"
-    datatype                    = 'uint8'
-    nx                          = 64
-    ny                          = 64
-    nz                          = 16
-    nchan                       = 1
 
-    #X_train                     = buildDataset_3D(filename, datatype, nx, ny, nz)
-    
+    nx                          = 96
+    ny                          = 96
+    nz                          = 24
+    nchan                       = 1
+  
     # Insert channel dimension 
     #X_train                     = X_train[:, np.newaxis, :, :, :]
 
-    # Initialize a class instance
-    wgan                        = wGAN(nx, ny, nz, nchan)
+    # Create class instance
+    print('----------------------------')
+    print('Set up GAN model')
+    print('----------------------------')
+    wgan                        = wGAN(nx, ny, nz, nchan, max_filters, kernel_size)
+
+    # Train GAN
+    print('----------------------------')   
+    print('Train GAN model')
+    print('----------------------------')
     # Start training
-    wgan.trainGAN(generator, n_epochs = 500, batch_size = BATCH_SIZE, sample_interval = 2)
+    os.chdir(output_path)
+    wgan.trainGAN(generator, n_epochs = NUM_ITER, batch_size = BATCH_SIZE, sample_interval = SAMPLE_INT, eps, randomDim = RANDOM_DIM)
 

@@ -95,7 +95,6 @@ class wGAN():
         self.discriminator.trainable    = True
         self.generator.trainable        = False
 
-
         #real_samples                        = Input(shape=X_train.shape[1:])
         real_samples                        = Input(shape=self.image_dimensions)
         generator_input_for_discriminator   = Input(shape=(self.latent_dim,))
