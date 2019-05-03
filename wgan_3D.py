@@ -83,9 +83,9 @@ class wGAN():
 
 
         # Build the generator
-        self.generator      = self.buildGenerator()
+        self.generator      = self.buildGenerator(max_filters, kernel_sz)
         # Build discriminator
-        self.discriminator  = self.buildDiscriminator()
+        self.discriminator  = self.buildDiscriminator(max_filters, kernel_sz)
         # Set trainable = false for the discriminator layers in full model
         for layer in self.discriminator.layers:
             layer.trainable = False
