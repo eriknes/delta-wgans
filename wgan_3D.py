@@ -189,7 +189,7 @@ class wGAN():
 
         return discriminator
 
-    def trainGAN(self, generator, iterations = NUM_ITER, batch_size = BATCH_SIZE, sample_interval = SAMPLE_INT, eps = EPSILON, randomDim = RANDOM_DIM):
+    def trainGAN(self, generator, eps, iterations = NUM_ITER, batch_size = BATCH_SIZE, sample_interval = SAMPLE_INT, randomDim = RANDOM_DIM):
         
         # We make three label vectors for training. positive_y is the label vector for real samples, with value 1.
         # negative_y is the label vector for generated samples, with value -1. The dummy_y vector is passed to the
@@ -373,5 +373,5 @@ if __name__ == '__main__':
     print('----------------------------')
     # Start training
     os.chdir(output_path)
-    wgan.trainGAN(generator, n_epochs = NUM_ITER, batch_size = BATCH_SIZE, sample_interval = SAMPLE_INT, eps, randomDim = RANDOM_DIM)
+    wgan.trainGAN(generator, eps, n_epochs = NUM_ITER, batch_size = BATCH_SIZE, sample_interval = SAMPLE_INT, randomDim = RANDOM_DIM)
 
