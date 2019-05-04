@@ -29,10 +29,8 @@ from functools import partial
 #import loadData3D as d3d
 
 SAMPLE_INT              = 500
-EPSILON                 = .2
-RANDOM_DIM              = 32
+EPSILON                 = 0.2
 LATENT_VEC_SIZE         = 32
-BATCH_COUNT             = 10
 BATCH_SIZE              = 32
 GRADIENT_PENALTY_WEIGHT = 10
 N_CRITIC_ITER           = 5
@@ -105,11 +103,15 @@ class wGAN():
         self.discriminator.trainable        = True
         self.generator.trainable            = False
 
-        real_samples                            = Input(shape=(self.nchan, nx, ny, nz))
+        real_samples                            = Input(shape=self.image_dimensions)
         generator_input_for_discriminator       = Input(shape=(self.latent_dim,))
         generated_samples_for_discriminator     = self.generator(generator_input_for_discriminator)
         discriminator_output_from_generator     = self.discriminator(generated_samples_for_discriminator)
         discriminator_output_from_real_samples  = self.discriminator(real_samples)
+        print("Real samples shape is: " )
+        print(real_samples.shape)
+        print("Generated samples shape is: " )
+        print(generated_samples_for_discriminator.shape)
         averaged_samples        = RandomWeightedAverage()([ real_samples, generated_samples_for_discriminator])
 
         averaged_samples_out    = self.discriminator(averaged_samples)
@@ -189,7 +191,7 @@ class wGAN():
 
         return discriminator
 
-    def trainGAN(self, generator, eps, iterations = NUM_ITER, batch_size = BATCH_SIZE, sample_interval = SAMPLE_INT, randomDim = RANDOM_DIM):
+    def trainGAN(self, generator, eps = 0.2, iterations = NUM_ITER, batch_size = BATCH_SIZE, sample_interval = SAMPLE_INT, randomDim = LATENT_VEC_SIZE):
         
         # We make three label vectors for training. positive_y is the label vector for real samples, with value 1.
         # negative_y is the label vector for generated samples, with value -1. The dummy_y vector is passed to the
@@ -209,7 +211,7 @@ class wGAN():
             #print("Epoch: ", epoch)
             #print("Number of batches: ", int(X_train.shape[0] // BATCH_SIZE))
 
-            nSamples        = BATCH_COUNT
+            nSamples        = batch_size
             
 
             for j in range(N_CRITIC_ITER):
@@ -373,5 +375,5 @@ if __name__ == '__main__':
     print('----------------------------')
     # Start training
     os.chdir(output_path)
-    wgan.trainGAN(generator, eps, n_epochs = NUM_ITER, batch_size = BATCH_SIZE, sample_interval = SAMPLE_INT, randomDim = RANDOM_DIM)
+    wgan.trainGAN(generator, eps, n_epochs = NUM_ITER, batch_size = BATCH_SIZE, sample_interval = SAMPLE_INT, randomDim = LATENT_VEC_SIZE)
 
