@@ -102,6 +102,11 @@ class wGAN():
         discriminator_output_from_generator = self.discriminator(generated_samples_for_discriminator)
         discriminator_output_from_real_samples = self.discriminator(real_samples)
 
+        print("Real samples shape is: " )
+        print(real_samples.shape)
+        print("Generated samples shape is: " )
+        print(generated_samples_for_discriminator.shape)
+
         # average of real and GAN
         averaged_samples = RandomWeightedAverage()([ real_samples, generated_samples_for_discriminator])
 

@@ -69,7 +69,7 @@ class wGAN():
         self.ncols              = ny
         self.nlayers            = nz
         self.nchan              = nchan
-        self.image_dimensions   = (nchan, self.nrows, self.ncols, self.nlayers)
+        self.image_dimensions   = (self.nchan, self.nrows, self.ncols, self.nlayers)
         print("Image dim is: " )
         print( self.image_dimensions)
         
