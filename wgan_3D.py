@@ -71,7 +71,7 @@ class wGAN():
         self.ncols              = ny
         self.nlayers            = nz
         self.nchan              = nchan
-        self.image_dimensions   = (self.nchan, self.nrows, self.ncols, self.nlayers)
+        self.image_dimensions   = (nchan, self.nrows, self.ncols, self.nlayers)
         print("Image dim is: " )
         print( self.image_dimensions)
         
@@ -164,7 +164,7 @@ class wGAN():
 
         discriminator = Sequential()
 
-        discriminator.add(Conv3D(256, kernel_size=(kernel_sz, kernel_sz, 5), strides=(2,2,1), input_shape=self.image_dimensions, 
+        discriminator.add(Conv3D(256, kernel_size=(kernel_sz, kernel_sz, 5), strides=(2,2,2), input_shape=self.image_dimensions, 
             padding="same", kernel_initializer=initializers.RandomNormal(stddev=0.02)))
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
@@ -177,9 +177,9 @@ class wGAN():
         discriminator.add(LeakyReLU(.2))
         discriminator.add(Dropout(0.3))
 
-        discriminator.add(Conv3D(64, kernel_size=(kernel_sz,kernel_sz, 5), strides=(2,2,2), padding="same"))
-        discriminator.add(LeakyReLU(.2))
-        discriminator.add(Dropout(0.3))
+        #discriminator.add(Conv3D(64, kernel_size=(kernel_sz,kernel_sz, 5), strides=(2,2,2), padding="same"))
+        #discriminator.add(LeakyReLU(.2))
+        #discriminator.add(Dropout(0.3))
 
         discriminator.add(Flatten())
 
