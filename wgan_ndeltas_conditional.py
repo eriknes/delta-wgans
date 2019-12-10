@@ -90,7 +90,7 @@ class wGAN():
         discriminator_output= self.discriminator(generator_output)
         partial_data_loss = partial(hardDataLoss,
                                   ydata_true=yval,
-                                  ydata_pred=generator_output,
+                                  gen_pred=generator_output,
                                   ii = ii,
                                   jj = jj,
                                   ff = ff)
