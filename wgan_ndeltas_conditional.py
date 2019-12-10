@@ -96,7 +96,7 @@ class wGAN():
                                   ff = ff)
         partial_data_loss.__name__ = 'gen_data_loss'  
         self.generator_model     = Model(inputs=[generator_input], outputs=[discriminator_output])
-        self.generator_model.compile(optimizer = optim, loss = [wassersteinLossWithData, partial_data_loss])
+        self.generator_model.compile(optimizer = optim, loss = [wassersteinLoss, partial_data_loss])
 
         # After generator model compilation, we make the discriminator layers trainable.
         for layer in self.discriminator.layers:
