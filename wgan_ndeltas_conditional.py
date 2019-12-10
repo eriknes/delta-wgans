@@ -63,7 +63,7 @@ class wGAN():
 
         #np.random.seed(1)
 
-        K.set_image_dim_ordering('channels_first')
+        K.set_image_data_format('th')
         self.nrows                  = num_pix
         self.ncols                  = num_pix
         self.nchan                  = n_chan
